@@ -77,6 +77,37 @@ export const STYLE_LIBRARY = [
   { id: 'jumper', name: 'Christmas jumper card', shape: 'portrait', caricature: true, group: 'Festive',
     prompt: 'a cosy, cheerful 3D cartoon Christmas card scene: wearing bright knitted Christmas jumpers over their own outfits, in front of a decorated Christmas tree and a crackling fireplace with stockings, warm golden glow, wrapped presents and a few floating snowflakes',
     motion: 'Christmas cheer: they raise a mug of hot chocolate, laugh and do a little happy jiggle, the tree lights twinkle and the fire flickers. Keep the same cosy 3D cartoon style and scene. The camera stays still. Crackling fire and jingle sound effects only, no words.' },
+  // ---------- realistic AI photo + video (time machine, sports, heroes, glamour) ----------
+  { id: 'era20s', name: 'Roaring 20s', shape: 'portrait', caricature: false, group: 'Time machine',
+    prompt: 'a photo-realistic 1920s glamour portrait in rich sepia and black and white: dressed in elegant 1920s evening wear (a sharp three-piece suit with a bow tie, or a beaded flapper-style gown with the same coverage as their own clothes), art deco ballroom with chandeliers and champagne towers behind, soft vintage film grain',
+    motion: 'A 1920s party comes alive: they turn to the camera with a charming smile, raise a glass, and a little jazz-age dance step; the chandeliers sparkle and confetti drifts down. Keep the sepia vintage film look throughout. The camera slowly pushes in. Crackly 1920s jazz band music, no words.' },
+  { id: 'disco', name: 'Disco 70s', shape: 'portrait', caricature: false, group: 'Time machine',
+    prompt: 'a photo-realistic 1970s disco photograph: dressed in glamorous 70s disco outfits (wide collars, flares, sequins and sparkle, with the same coverage as their own clothes), big glossy 70s hair, on a light-up dance floor under a spinning mirror ball with purple and pink lights',
+    motion: 'They strike classic disco moves under the spinning mirror ball, pointing up and grooving, the light-up floor flashing in time. Keep the same 70s look and outfits. The camera slowly circles. Funky disco beat, no words.' },
+  { id: 'noir', name: 'Film noir', shape: 'portrait', caricature: false, group: 'Time machine',
+    prompt: 'a dramatic black and white 1940s film noir photograph: dressed in 1940s fashion (a fedora and trench coat or tailored suit, or an elegant 1940s dress with the same coverage as their own clothes), moody side lighting, light through window blinds, a rainy city street with old cars behind, cinematic film grain',
+    motion: 'A film noir moment: rain falls, they slowly turn their head to the camera with a knowing smile, light from passing car headlights sweeps across them. Keep the black and white 1940s film look. The camera slowly pushes in. Rain and a soft jazz saxophone, no words.' },
+  { id: 'steampunk', name: 'Steampunk adventure', shape: 'portrait', caricature: false, group: 'Time machine',
+    prompt: 'a photo-realistic steampunk adventure scene: dressed in Victorian steampunk explorer outfits with brass goggles, leather and copper details, standing on the deck of a magnificent brass and wood flying airship above a golden city at sunset, cogs, gears and steam all around',
+    motion: 'The airship soars through the golden clouds: wind in their hair, they lower their goggles, point ahead and grin as the propellers spin and steam puffs out. Keep the same steampunk look. The camera glides alongside. Steam, propellers and wind sounds, no words.' },
+  { id: 'future', name: 'Future city', shape: 'portrait', caricature: false, group: 'Time machine',
+    prompt: 'a photo-realistic sci-fi portrait in the year 2100: sleek futuristic outfits with soft glowing light panels (same coverage as their own clothes), on a high balcony overlooking a gleaming neon futuristic city with flying vehicles, holographic lights and a purple-blue dusk sky',
+    motion: 'The future city comes alive: flying vehicles glide past, holographic lights shimmer around them, they turn to the camera with a confident smile as their outfits glow brighter. Keep the same futuristic look. The camera slowly orbits. Futuristic hum and whoosh sounds, no words.' },
+  { id: 'football', name: 'Football star', shape: 'portrait', caricature: false, group: 'Sports',
+    prompt: 'a photo-realistic action sports photograph: as a professional football (soccer) player in a plain team kit with no badges, logos or numbers, mid-air doing a spectacular volley kick at the ball, in a packed floodlit stadium at night, crowd blurred behind, dramatic sports-photography lighting',
+    motion: 'Spectacular sports moment: they leap and smash a volley, the ball rockets into the net, then they run and celebrate with arms wide as the stadium crowd roars and camera flashes pop. Keep it photo-realistic with the same player and kit. The camera tracks the action. Stadium crowd roar, no words.' },
+  { id: 'basketball', name: 'Slam dunk', shape: 'portrait', caricature: false, group: 'Sports',
+    prompt: 'a photo-realistic action sports photograph: as a basketball player in a plain team kit with no badges, logos or numbers, soaring high to slam dunk the ball, on an outdoor court with a city skyline at golden sunset behind',
+    motion: 'They run in, leap high and slam dunk the ball through the hoop, hang on the rim for a moment, land and celebrate. Keep it photo-realistic with the same player, kit and sunset skyline. The camera follows the jump in slow motion. Ball bounce, rim clang and cheer, no words.' },
+  { id: 'squad', name: 'Hero landing', shape: 'portrait', caricature: false, group: 'Heroes & glamour',
+    prompt: 'a photo-realistic cinematic superhero image: as superheroes in original high-tech armoured suits of your own design (no real superhero costumes, symbols or logos), with flowing capes, hovering above a glittering city rooftop at sunset, beams of rainbow-coloured light shooting up behind them',
+    motion: 'Epic superhero landing: they descend from the sky through the rainbow light beams, land on the rooftop in a powerful crouch, then rise up into a heroic standing pose as their capes settle. Keep it photo-realistic with the same suits and city. The camera slowly pulls back. Whoosh, impact boom and heroic swell, no words.' },
+  { id: 'gala', name: 'Gala night', shape: 'portrait', caricature: false, group: 'Heroes & glamour',
+    prompt: 'a photo-realistic glamorous gala photograph: dressed in black tie (a tuxedo, or an elegant floor-length evening gown with the same coverage as their own clothes), standing at the foot of a grand marble staircase with a red carpet, red velvet drapes and warm golden lighting',
+    motion: 'A grand gala entrance: they walk elegantly down the red-carpet staircase arm in arm, then pause, smile and wave as camera flashes pop. Keep it photo-realistic with the same outfits and staircase. The camera slowly pulls back. Gentle orchestral music and camera flashes, no words.' },
+  { id: 'golden', name: 'Golden celebration', shape: 'portrait', caricature: false, group: 'Heroes & glamour',
+    prompt: 'a photo-realistic luxury celebration portrait: dressed in glamorous party wear (a sharp tuxedo or a shimmering gold evening dress with the same coverage as their own clothes), in front of a glowing gold glitter backdrop with warm bokeh lights and floating gold confetti, magazine-cover lighting',
+    motion: 'Party moment: gold confetti bursts and rains down, they laugh, lean in together and raise a toast to the camera. Keep it photo-realistic with the same outfits and gold backdrop. The camera slowly pushes in. Celebration pop and cheers, no words.' },
   { id: 'water', name: 'Watercolour', shape: 'portrait', caricature: false, group: 'Art',
     prompt: 'a soft, realistic watercolour portrait on textured white watercolour paper: a true likeness with gentle detailed washes on the face, loose painterly clothes, and a soft green, yellow and blue watercolour splash behind them with a few drips and speckles fading into the white paper' },
   { id: 'oil', name: 'Royal oil painting', shape: 'portrait', caricature: false, group: 'Art',
@@ -100,14 +131,14 @@ export const DEFAULT_MOTION = 'Bring this caricature to life as a short, playful
 export function newEvent(id, name) {
   return {
     id, name: name || 'New event', created: Date.now(),
-    boothTitle: 'Caricature Booth', tagline: 'Strike a pose. Get drawn.', startBtn: 'Start',
+    boothTitle: 'AI Photo Booth', tagline: 'Pick a style. Strike a pose.', startBtn: 'Start',
     colors: { bg: '#121012', accent: '#ED2F5B', text: '#FFFFFF' },
     styles: DEFAULT_STYLES.map((s) => ({ ...s })), guestChoice: true, expressions: DEFAULT_EXPRESSIONS.slice(),
     allowGroup: true, countdown: 3, makingTitle: 'Magic happening', makingSub: 'Please wait, just a moment',
     video: { on: true, motion: DEFAULT_MOTION, aspect: '9:16', resolution: '720p' },
     print: { on: true, from: 'station', copies: 1, qr: true, inset: true, hasFrame: false, hasFrameL: false },
-    email: { enabled: true, atBooth: true, senderName: '', subject: 'Your caricature video', heading: 'Your caricature video',
-      message: 'Thanks for stopping by! Here is your animated caricature. Tap below to watch it and save it to your phone.', button: 'Watch my video',
+    email: { enabled: true, atBooth: true, senderName: '', subject: 'Your AI photo booth video', heading: 'Your video',
+      message: 'Thanks for stopping by! Here is your video from the AI photo booth. Tap below to watch it and save it to your phone.', button: 'Watch my video',
       consent: 'I agree to receive this email with my video.', marketing: false, marketingText: 'Keep me updated with news and offers from the event organiser.' },
     hasLogo: false, hasBg: false, resetSec: 25,
   };
@@ -176,19 +207,19 @@ export async function sendGuestEmail({ to, ev, m, origin }) {
   const from = process.env.EMAIL_FROM || s.emailFrom || DEFAULT_FROM;
   const logo = ev.hasLogo ? `${origin}/api/files/logo/${ev.id}?v=${ev.filesV || 0}` : '';
   const hasVideo = m.video === 'ready';
-  const button = hasVideo ? (em.button || 'Watch my video') : 'See my caricature';
+  const button = hasVideo ? (em.button || 'Watch my video') : 'See my picture';
   const html = `<!doctype html><html><body style="margin:0;background:#f2f3f6;font-family:Arial,Helvetica,sans-serif">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:14px;overflow:hidden">
 <tr><td align="center" style="background:${escH(accent)};padding:22px">${logo ? `<img src="${escH(logo)}" alt="" style="max-width:260px;max-height:90px">` : `<div style="color:#fff;font-size:22px;font-weight:bold">${escH(em.heading || ev.name)}</div>`}</td></tr>
 <tr><td style="padding:24px 26px 8px;color:#222;font-size:16px;line-height:1.55">${escH(em.message).replace(/\n/g, '<br>')}</td></tr>
-<tr><td align="center" style="padding:10px 24px"><a href="${escH(link)}"><img src="${escH(origin)}/api/public/media/${m.id}/thumb.jpg" alt="Your caricature" width="240" style="width:240px;max-width:100%;border-radius:10px;display:block"></a></td></tr>
+<tr><td align="center" style="padding:10px 24px"><a href="${escH(link)}"><img src="${escH(origin)}/api/public/media/${m.id}/thumb.jpg" alt="Your picture" width="240" style="width:240px;max-width:100%;border-radius:10px;display:block"></a></td></tr>
 <tr><td align="center" style="padding:16px 24px 30px"><a href="${escH(link)}" style="background:${escH(accent)};color:#fff;text-decoration:none;padding:15px 28px;border-radius:30px;font-weight:bold;display:inline-block">${escH(button)}</a></td></tr>
 </table></td></tr></table></body></html>`;
   const r = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST', headers: { 'api-key': key, 'content-type': 'application/json', accept: 'application/json' },
     body: JSON.stringify({ sender: { name: em.senderName || ev.name || 'Photobooth-ME', email: from }, replyTo: { email: from }, to: [{ email: to }],
-      subject: em.subject || 'Your caricature video', htmlContent: html, textContent: `${em.message || ''}\n\n${button}: ${link}` }),
+      subject: em.subject || 'Your AI photo booth video', htmlContent: html, textContent: `${em.message || ''}\n\n${button}: ${link}` }),
   });
   if (!r.ok) throw Object.assign(new Error('Email service: ' + (await r.text()).slice(0, 300)), { status: 502 });
 }

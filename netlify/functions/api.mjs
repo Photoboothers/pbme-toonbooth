@@ -44,7 +44,7 @@ function cleanEvent(ev, b) {
     ev.styles = b.styles.slice(0, 24).map((s, i) => {
       let id = /^[a-z0-9]{2,12}$/.test(s.id || '') ? s.id : 's' + rid(5); if (seen.has(id)) id = (id.slice(0, 6) + rid(5)); seen.add(id);
       return { id, name: str(s.name, 30) || 'Style ' + (i + 1), prompt: str(s.prompt, 1200), motion: str(s.motion, 1500), shape: s.shape === 'landscape' ? 'landscape' : 'portrait',
-        caricature: !!s.caricature, on: s.on !== false, hasSample: !!s.hasSample };
+        caricature: !!s.caricature, group: str(s.group, 30), on: s.on !== false, hasSample: !!s.hasSample };
     });
   }
   if (Array.isArray(b.expressions)) ev.expressions = b.expressions.map((x) => str(x, 200).trim()).filter(Boolean).slice(0, 20);
@@ -90,7 +90,7 @@ export default async (req) => {
       if (seg[1] === 'v' && method === 'GET') {
         const m = await shotMeta(seg[2]); if (!m || m.toon !== 'ready') return err('Not found', 404);
         const ev = (await EV().get(m.eventId, { type: 'json' })) || {};
-        return json({ id: m.id, name: ev.name, heading: (ev.email && ev.email.heading) || 'Your caricature', colors: ev.colors || {},
+        return json({ id: m.id, name: ev.name, heading: (ev.email && ev.email.heading) || 'Your picture', colors: ev.colors || {},
           logo: ev.hasLogo ? `/api/files/logo/${ev.id}?v=${ev.filesV || 0}` : '', video: m.video, toon: `/api/public/media/${m.id}/toon` });
       }
       if (seg[1] === 'media' && method === 'GET') {

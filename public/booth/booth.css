@@ -60,3 +60,4 @@ body.booth { --bg: #121012; --accent: #ED2F5B; --text: #fff; background: var(--b
   .toonimg { max-height: 46vh; max-width: 90vw; }
   .res-side { width: min(560px, 92vw); }
 }
+.style-grid .sg { grid-column: 1 / -1; margin: 10px 0 0; font-size: 22px; text-align: left; }

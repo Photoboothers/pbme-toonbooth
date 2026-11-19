@@ -26,11 +26,14 @@ async function loadEvent() {
   b.backgroundImage = ev.hasBg ? `url(/api/files/bg/${ev.id}?v=${ev.filesV || 0})` : '';
   $('#logo').classList.toggle('hidden', !ev.hasLogo); if (ev.hasLogo) $('#logo').src = `/api/files/logo/${ev.id}?v=${ev.filesV || 0}`;
   $('#title').textContent = ev.boothTitle || ''; $('#tagline').textContent = ev.tagline || ''; $('#go').textContent = ev.startBtn || 'Start';
-  $('#styleGrid').innerHTML = onStyles().map((s) => `<button class="style-card" data-s="${esc(s.id)}">${s.hasSample ? `<img src="/api/files/sample/${ev.id}/${esc(s.id)}?v=${ev.filesV || 0}" alt="">` : '<div class="ph"><img src="/img/pencil.png" alt=""></div>'}<span>${esc(s.name)}</span></button>`).join('');
+  const card = (s) => `<button class="style-card" data-s="${esc(s.id)}">${s.hasSample ? `<img src="/api/files/sample/${ev.id}/${esc(s.id)}?v=${ev.filesV || 0}" alt="">` : '<div class="ph"><img src="/img/pencil.png" alt=""></div>'}<span>${esc(s.name)}</span></button>`;
+  const list = onStyles(), groups = [...new Set(list.map((s) => s.group || ''))];
+  // lots of styles from several groups: show them under group headings so guests can find their favourite
+  $('#styleGrid').innerHTML = list.length > 6 && groups.length > 1 ? groups.map((g) => `<h3 class="sg">${esc(g || 'More')}</h3>${list.filter((s) => (s.group || '') === g).map(card).join('')}`).join('') : list.map(card).join('');
   $('#styleGrid').querySelectorAll('[data-s]').forEach((el) => { el.onclick = () => { style = el.dataset.s; openCamera(); }; });
   const v = ev.filesV || 0, p = ev.print || {};
   frames = { p: p.hasFrame ? await loadImg(`/api/files/frame/${ev.id}?v=${v}`) : null, l: p.hasFrameL ? await loadImg(`/api/files/framel/${ev.id}?v=${v}`) : null };
-  document.title = ev.name + ' · Caricature Booth';
+  document.title = ev.name + ' · AI Photo Booth';
 }
 
 // ---------- camera ----------
@@ -114,14 +117,14 @@ async function wait(id) {
 async function finish(m) {
   const toon = await loadImg(`/api/shots/${m.id}/toon`);
   await finishLine(); sketching(false);
-  if (!toon) { toast('Could not load the caricature', true); $('#mkErr').classList.remove('hidden'); return; }
+  if (!toon) { toast('Could not load your picture', true); $('#mkErr').classList.remove('hidden'); return; }
   const link = `${location.origin}/v/${m.id}`;
   $('#toon').src = `/api/shots/${m.id}/toon`;
   // result screen
   const em = ev.email || {}, vid = ev.video && ev.video.on, printing = ev.print && ev.print.on;
   $('#printMsg').classList.toggle('hidden', !printing);
   $('#ebox').classList.toggle('hidden', !(em.enabled && em.atBooth)); $('#ebox').reset(); $('#bsend').disabled = false; $('#bmsg').textContent = '';
-  $('#eTitle').textContent = vid ? 'Get your animated video by email' : 'Get your caricature by email';
+  $('#eTitle').textContent = vid ? 'Get your animated video by email' : 'Get your picture by email';
   $('#consentTxt').textContent = em.consent || 'I agree to receive this email.';
   $('#mkRow').classList.toggle('hidden', !em.marketing); $('#mkTxt').textContent = em.marketingText || '';
   $('#qrTxt').textContent = vid ? 'Or scan to watch it on your phone' : 'Or scan to save it on your phone';

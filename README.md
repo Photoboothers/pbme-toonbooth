@@ -1,4 +1,4 @@
-# Photobooth-ME · Caricature Booth
+# Photobooth-ME · AI Photo Booth (caricatures, AI photos and AI video)
 
 Guests take a photo and get an AI caricature. The still prints at 4x6 straight away, and an animated video of the caricature is emailed to them a minute or two later.
 
@@ -10,7 +10,7 @@ Guests take a photo and get an AI caricature. The still prints at 4x6 straight a
 
 ## Styles
 
-Admin → Styles → **Add from the style library** has 26 ready styles (golf swing, big laugh cartoon, red carpet stars, pixel game hero, elfie selfie, instant sketch, collectible figurine, watercolour and more). Each style has its own look prompt, its own animation (the pixel hero runs and catches coins, the laughing friends look at each other and crack up), a shape (portrait or landscape) and an optional sample image for the style button. Everything is editable per event.
+Admin → Styles → **Add from the style library** has 36 ready styles: cartoon and caricature looks (golf swing, big laugh cartoon, red carpet stars, pixel game hero, collectible figurine, instant sketch, watercolour and more), festive (elfie selfie) and realistic AI photo transformations (time machine eras, football star, slam dunk, hero landing, gala night, golden celebration). Each style has its own look prompt, its own animation (the pixel hero runs and catches coins, the laughing friends look at each other and crack up), a shape (portrait or landscape) and an optional sample image for the style button. Everything is editable per event.
 
 Admin → Print & video → **What guests get**: print + animated video, print only, video only, or digital only.
 

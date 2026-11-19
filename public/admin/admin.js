@@ -13,7 +13,7 @@ window.addEventListener('tb-auth', renderLogin);
 document.getElementById('logout').onclick = async (e) => { e.preventDefault(); await api('/logout', { method: 'POST', allow401: true }); renderLogin(); };
 function renderLogin() {
   document.getElementById('nav').classList.add('hidden');
-  app.innerHTML = `<div class="card login"><h1>Sign in</h1><p class="muted">Caricature Booth admin</p><form id="lf"><label class="f">Admin password</label><input type="password" id="pw" autofocus>
+  app.innerHTML = `<div class="card login"><h1>Sign in</h1><p class="muted">AI Photo Booth admin</p><form id="lf"><label class="f">Admin password</label><input type="password" id="pw" autofocus>
     <p id="lerr" class="hint" style="color:var(--bad)"></p><button class="btn" style="width:100%;margin-top:10px">Sign in</button></form></div>`;
   $('#lf').onsubmit = async (e) => { e.preventDefault(); try { await api('/login', { method: 'POST', body: { password: $('#pw').value }, allow401: true }); route(); } catch (err) { $('#lerr').textContent = err.message; } };
 }
@@ -105,7 +105,7 @@ function tabStyles(el) {
     <div class="card" style="margin-top:18px"><h2>Fun expressions</h2><p class="hint">One per line. Styles with "Fun expressions" ticked give each guest one of these at random.</p><textarea id="expr">${esc(ev.expressions.join('\n'))}</textarea></div>
     <button class="btn" id="save">Save styles</button>`;
   wireFiles(el);
-  const collect = () => $$('[data-style]', el).map((c) => ({ id: c.dataset.style, on: $('[data-k=on]', c).checked, name: $('[data-k=name]', c).value, shape: $('[data-k=shape]', c).value, caricature: $('[data-k=caricature]', c).checked,
+  const collect = () => $$('[data-style]', el).map((c) => ({ id: c.dataset.style, on: $('[data-k=on]', c).checked, name: $('[data-k=name]', c).value, shape: $('[data-k=shape]', c).value, caricature: $('[data-k=caricature]', c).checked, group: (ev.styles.find((s) => s.id === c.dataset.style) || {}).group || '',
     prompt: $('[data-k=prompt]', c).value, motion: $('[data-k=motion]', c).value, hasSample: (ev.styles.find((s) => s.id === c.dataset.style) || {}).hasSample }));
   const saveAll = () => put({ guestChoice: chk('guestChoice'), styles: collect(), expressions: lines(val('expr')) });
   $$('[data-rm]', el).forEach((b) => { b.onclick = () => { if (confirm('Remove this style from the event?')) b.closest('[data-style]').remove(); }; });

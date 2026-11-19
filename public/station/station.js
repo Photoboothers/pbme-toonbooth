@@ -44,7 +44,7 @@ function render() {
   $('#cMail').textContent = shots.reduce((n, m) => n + (m.emails || []).filter((e) => e.sent).length, 0);
   $('#empty').classList.toggle('hidden', shots.length > 0);
   $('#queue').innerHTML = shots.slice(0, 60).map((m) => {
-    const st = printing.has(m.id) ? ['printing', 'Printing…'] : done(m) ? ['done', `Printed${m.printed > 1 ? ' ' + m.printed + 'x' : ''}`] : m.hasPrint ? ['waiting', on && (m.printReady || 0) >= startedAt ? 'Queued' : 'Ready - tap Print'] : m.toon === 'error' ? ['error', 'Drawing failed'] : ['creating', 'Drawing…'];
+    const st = printing.has(m.id) ? ['printing', 'Printing…'] : done(m) ? ['done', `Printed${m.printed > 1 ? ' ' + m.printed + 'x' : ''}`] : m.hasPrint ? ['waiting', on && (m.printReady || 0) >= startedAt ? 'Queued' : 'Ready - tap Print'] : m.toon === 'error' ? ['error', 'Failed'] : ['creating', 'Creating…'];
     const mails = (m.emails || []).length ? `${(m.emails || []).filter((e) => e.sent).length}/${m.emails.length} emailed` : '';
     return `<div class="st-item s-${st[0]}">${m.hasThumb ? `<img loading="lazy" src="/api/shots/${m.id}/thumb" alt="">` : '<img alt="">'}<div class="b">
       <div class="nm">${new Date(m.created).toLocaleTimeString()} · ${esc(m.id)}</div><div class="stt">${st[1]}</div>
