@@ -1,6 +1,6 @@
 // Photobooth-ME Caricature Booth - API (one function, routed by path)
 import { timingSafeEqual, randomBytes } from 'node:crypto';
-import { EV, SET, FILES, SHOTS, SIDX, sign, jobKey, validId, newEvent, STYLE_LIBRARY, shotMeta, patchShot, flushEmails, videoSettled, DEFAULT_FROM, IMAGE_MODEL, VIDEO_MODEL } from './lib.mjs';
+import { EV, SET, FILES, SHOTS, SIDX, sign, jobKey, validId, newEvent, STYLE_LIBRARY, GROUP_ORDER, MAX_PER_MODE, shotMeta, patchShot, flushEmails, videoSettled, DEFAULT_FROM, IMAGE_MODEL, VIDEO_MODEL } from './lib.mjs';
 
 export const config = { path: '/api/*' };
 
@@ -36,6 +36,8 @@ const csvCell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
 function cleanEvent(ev, b) {
   for (const k of ['name', 'boothTitle', 'tagline', 'startBtn', 'makingTitle', 'makingSub']) if (b[k] !== undefined) ev[k] = str(b[k], 80);
   for (const k of ['guestChoice', 'allowGroup']) if (b[k] !== undefined) ev[k] = !!b[k];
+  if (Array.isArray(b.groupsOff)) ev.groupsOff = b.groupsOff.map((g) => str(g, 30)).slice(0, 40);
+  if (['both', 'ai', 'toon'].includes(b.boothType)) ev.boothType = b.boothType;
   if (b.countdown !== undefined) ev.countdown = Math.max(0, Math.min(10, Math.round(+b.countdown || 0)));
   if (b.resetSec !== undefined) ev.resetSec = Math.max(10, Math.min(120, Math.round(+b.resetSec || 25)));
   if (b.colors && typeof b.colors === 'object') for (const k of ['bg', 'accent', 'text']) if (/^#[0-9a-f]{6}$/i.test(b.colors[k] || '')) ev.colors[k] = b.colors[k];
@@ -47,6 +49,8 @@ function cleanEvent(ev, b) {
         caricature: !!s.caricature, logo: !!s.logo, word: str(s.word, 20).trim(), group: str(s.group, 30), on: s.on !== false, hasSample: !!s.hasSample };
     });
   }
+  // at most 12 styles switched on per mode (AI Create, Toon Style)
+  if (Array.isArray(b.styles)) { const n = { ai: 0, toon: 0 }; for (const x of ev.styles) if (x.on) { const k = x.kind === 'ai' ? 'ai' : 'toon'; if (++n[k] > MAX_PER_MODE) x.on = false; } }
   if (Array.isArray(b.expressions)) ev.expressions = b.expressions.map((x) => str(x, 200).trim()).filter(Boolean).slice(0, 20);
   if (b.video && typeof b.video === 'object') {
     const v = b.video; ev.video = { ...ev.video };
@@ -175,7 +179,9 @@ export default async (req) => {
       if (seg.length === 1 && method === 'POST') { const b = await body(req); const ev = newEvent(rid(8), str(b.name, 80).trim()); await EV().setJSON(ev.id, ev); return json(ev); }
       const id = seg[1]; if (!validId(id)) return err('Bad event id');
       const ev = await EV().get(id, { type: 'json' }); if (!ev) return err('Event not found', 404);
-      if (seg.length === 2 && method === 'GET') { const st = (await SET().get('global', { type: 'json' })) || {}; return json({ ...ev, libSamples: st.libSamples || {} }); }
+      if (seg.length === 2 && method === 'GET') { const st = (await SET().get('global', { type: 'json' })) || {}; // library styles always use the library's current category and type
+        const styles = (ev.styles || []).map((x) => { const l = STYLE_LIBRARY.find((y) => y.id === x.id); return l ? { ...x, group: l.group, kind: l.kind } : x; });
+        return json({ ...ev, styles, groupOrder: GROUP_ORDER, libSamples: st.libSamples || {} }); }
       if (seg[2] === 'samples' && method === 'POST') {   // make example pictures for the style buttons from one staff photo
         if (!process.env.GEMINI_API_KEY) return err('GEMINI_API_KEY is not set in Netlify yet (then redeploy).', 503);
         const buf = await req.arrayBuffer(); if (!buf.byteLength || buf.byteLength > 5 * 1024 * 1024) return err('Please choose a photo under 5 MB');

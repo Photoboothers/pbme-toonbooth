@@ -76,3 +76,5 @@ body.booth { --bg: #121012; --accent: #ED2F5B; --text: #fff; background: var(--b
 .mode-card:active { transform: scale(.98); }
 @media (orientation: portrait) { .mode-card { width: min(420px, 44vw); } }
 body.loading #home > * { visibility: hidden; }   /* nothing shows until the event's own wording has loaded, so no flicker */
+.logo.small { max-height: 10vh; }
+body.loading #modes > * { visibility: hidden; }

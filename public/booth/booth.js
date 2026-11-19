@@ -14,12 +14,13 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 
 // back to the start screen when nobody touches the booth for a while (never while the caricature is being made)
 function armIdle(id) {
-  clearTimeout(idle); if (!ev || id === 'home' || id === 'making') return;
+  clearTimeout(idle); if (!ev || id === 'home' || id === 'making' || (id === 'modes' && startsOnModes())) return;
   idle = setTimeout(() => goHome(), (ev.resetSec || 25) * 1000 * (id === 'result' ? 2 : 1));
 }
 ['pointerdown', 'keydown', 'input'].forEach((t) => document.addEventListener(t, () => { const s = document.querySelector('.screen:not(.hidden)'); if (s) armIdle(s.id); }, true));
 
-const onStyles = () => (ev.styles || []).filter((s) => s.on !== false);
+// the event's booth type decides which styles exist on this booth: both (guests choose first), AI Create only, or Toon Style only
+const onStyles = () => (ev.styles || []).filter((s) => s.on !== false && !(ev.groupsOff || []).includes(s.group || '') && (!ev.boothType || ev.boothType === 'both' || (s.kind === 'ai' ? 'ai' : 'toon') === ev.boothType));
 const EVKEY = 'tb-ev-' + EVENT;
 async function loadEvent() {
   try { ev = await api('/events/' + EVENT); try { localStorage.setItem(EVKEY, JSON.stringify(ev)); } catch { /* full */ } }
@@ -31,6 +32,9 @@ async function loadEvent() {
   document.body.classList.remove('loading');
   $('#title').textContent = ev.boothTitle || ''; $('#tagline').textContent = ev.tagline || ''; $('#go').textContent = ev.startBtn || 'Start';
   kind = ''; renderStyles(); modeImages();
+  $('#mdLogo').classList.toggle('hidden', !ev.hasLogo); if (ev.hasLogo) $('#mdLogo').src = $('#logo').src;
+  $('#mdBack').classList.toggle('hidden', startsOnModes());
+  { const vis = document.querySelector('.screen:not(.hidden)'); if (!vis || vis.id === 'home' || (vis.id === 'modes' && !cur)) show(homeId()); }
   const v = ev.filesV || 0, p = ev.print || {};
   frames = { p: p.hasFrame ? await loadImg(`/api/files/frame/${ev.id}?v=${v}`) : null, l: p.hasFrameL ? await loadImg(`/api/files/framel/${ev.id}?v=${v}`) : null };
   document.title = ev.name + ' · AI Create Booth';
@@ -41,8 +45,9 @@ function renderStyles() {
   const card = (s) => { const src = sampleOf(s); return `<button class="style-card" data-s="${esc(s.id)}">${src ? `<img src="${src}" alt="" loading="lazy">` : '<div class="ph"><img src="/img/pencil.png" alt=""></div>'}<span>${esc(s.name)}</span></button>`; };
   const all = onStyles();
   if (!bothKinds()) kind = '';
-  $('#stTitle').textContent = kind === 'ai' ? 'AI Create: pick your style' : kind === 'toon' ? 'Toon Mode: pick your style' : 'Pick your style';
-  const list = kind ? all.filter((s) => (s.kind === 'ai' ? 'ai' : 'toon') === kind) : all, groups = [...new Set(list.map((s) => s.group || ''))];
+  $('#stTitle').textContent = kind === 'ai' ? 'AI Create: pick your style' : kind === 'toon' ? 'Toon Style: pick your style' : 'Pick your style';
+  const list = kind ? all.filter((s) => (s.kind === 'ai' ? 'ai' : 'toon') === kind) : all, ord = ev.groupOrder || [], rank = (g) => { const i = ord.indexOf(g); return i < 0 ? 99 : i; };
+  const groups = [...new Set(list.map((s) => s.group || ''))].sort((a, b) => rank(a) - rank(b));
   // lots of styles from several groups: show them under group headings so guests can find their favourite
   $('#styleGrid').innerHTML = list.length > 6 && groups.length > 1 ? groups.map((g) => `<h3 class="sg">${esc(g || 'More')}</h3>${list.filter((s) => (s.group || '') === g).map(card).join('')}`).join('') : list.map(card).join('');
   $('#styleGrid').querySelectorAll('[data-s]').forEach((el) => { el.onclick = () => { style = el.dataset.s; openCamera(); }; });
@@ -70,7 +75,7 @@ async function openCamera() {
   try {
     stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
     $('#video').srcObject = stream;
-  } catch (e) { toast('Camera not available: ' + e.message, true); show('home'); }
+  } catch (e) { toast('Camera not available: ' + e.message, true); show(homeId()); }
 }
 function stopCamera() { if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; } }
 async function snap() {
@@ -241,7 +246,7 @@ async function instant(job) {
     note: (ev.video && ev.video.on ? 'Your AI picture and video' : 'Your AI picture') + ' will follow by QR code and email shortly.', printNote });
   syncAll();
 }
-function goHome() { run++; sketching(false); stopCamera(); cur = null; clearTimeout(idle); show('home'); if (ev) loadEvent().catch(() => {}); syncAll(); }
+function goHome() { run++; sketching(false); stopCamera(); cur = null; clearTimeout(idle); show(homeId()); if (ev) loadEvent().catch(() => {}); syncAll(); }
 
 // ---------- email at the booth (saved on this device, sent with the guest's job) ----------
 $('#ebox').onsubmit = async (e) => {
@@ -272,6 +277,10 @@ window.addEventListener('online', heartbeat); window.addEventListener('offline',
 const choosing = () => ev.guestChoice && onStyles().length > 1;
 $('#go').onclick = () => { style = (onStyles()[0] || {}).id || ''; kind = ''; if (!choosing()) return openCamera(); if (bothKinds()) { modeImages(); show('modes'); } else { renderStyles(); show('styles'); } };
 $('#mdBack').onclick = goHome;
+// when an event has both AI Create and Toon Style, the booth opens straight on "Choose your style" (no Start screen)
+function startsOnModes() { return !!ev && choosing() && bothKinds(); }
+function homeId() { return startsOnModes() ? 'modes' : 'home'; }
+$('#staff2').onclick = (e) => $('#staff').onclick(e);
 $('#stBack').onclick = () => (bothKinds() ? show('modes') : goHome());
 $('#camBack').onclick = () => { stopCamera(); if (choosing()) show('styles'); else goHome(); };
 $('#snap').onclick = snap;

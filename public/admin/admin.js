@@ -71,7 +71,12 @@ function wireFiles(el) {
 
 function tabLook(el) {
   const c = ev.colors;
-  el.innerHTML = `<div class="grid2"><div class="card"><h2>Start screen</h2>
+  el.innerHTML = `<div class="card"><h2>Booth type</h2><select id="boothType" style="max-width:560px">
+      <option value="both" ${(ev.boothType || 'both') === 'both' ? 'selected' : ''}>AI Create + Toon Style: opens on "Choose your style"</option>
+      <option value="ai" ${ev.boothType === 'ai' ? 'selected' : ''}>AI Create only: Start screen, then the AI Create styles</option>
+      <option value="toon" ${ev.boothType === 'toon' ? 'selected' : ''}>Toon Style only: Start screen, then the Toon Style styles</option></select>
+    <p class="hint">Only the styles of the chosen type show on the booth. Switch them on or off in the Styles tab.</p></div>
+    <div class="grid2"><div class="card"><h2>Start screen</h2>
     <label class="f">Title</label><input type="text" id="boothTitle" value="${esc(ev.boothTitle)}">
     <label class="f">Tagline</label><input type="text" id="tagline" value="${esc(ev.tagline)}">
     <label class="f">Start button</label><input type="text" id="startBtn" value="${esc(ev.startBtn)}">
@@ -86,14 +91,14 @@ function tabLook(el) {
     ${fileRow('Logo', 'logo/' + ev.id, ev.hasLogo, 'PNG with a transparent background. Shows on the start screen, the guest page and the email.')}
     ${fileRow('Background', 'bg/' + ev.id, ev.hasBg, 'Full-screen JPG behind the booth screens, sized for the booth screen (e.g. 1080 x 1920 portrait).')}</div></div>`;
   wireFiles(el);
-  $('#save', el).onclick = (e) => busy(e.target, () => put({ boothTitle: val('boothTitle'), tagline: val('tagline'), startBtn: val('startBtn'), makingTitle: val('makingTitle'), makingSub: val('makingSub'),
+  $('#save', el).onclick = (e) => busy(e.target, () => put({ boothType: val('boothType'), boothTitle: val('boothTitle'), tagline: val('tagline'), startBtn: val('startBtn'), makingTitle: val('makingTitle'), makingSub: val('makingSub'),
     countdown: +val('countdown'), resetSec: +val('resetSec'), colors: { bg: val('cbg'), accent: val('cacc'), text: val('ctext') } }));
 }
 
 function tabStyles(el) {
   const row = (s) => `<div class="card" data-style="${esc(s.id)}"><div class="row"><label class="switch"><input type="checkbox" data-k="on" ${s.on !== false ? 'checked' : ''}> On</label>
       <input type="text" data-k="name" value="${esc(s.name)}" style="width:220px">
-      <select data-k="kind" style="width:150px"><option value="ai" ${s.kind === 'ai' ? 'selected' : ''}>AI Create</option><option value="toon" ${s.kind !== 'ai' ? 'selected' : ''}>Toon Mode</option></select>
+      <select data-k="kind" style="width:150px"><option value="ai" ${s.kind === 'ai' ? 'selected' : ''}>AI Create</option><option value="toon" ${s.kind !== 'ai' ? 'selected' : ''}>Toon Style</option></select>
       <label class="switch" title="Gives each guest a random fun expression from the list below"><input type="checkbox" data-k="caricature" ${s.caricature ? 'checked' : ''}> Fun expressions</label>
       <label class="switch" title="Uses the event logo (Booth look tab)"><input type="checkbox" data-k="logo" ${s.logo ? 'checked' : ''}> Event logo on clothes</label><span class="grow"></span>
       <button class="btn ghost small" data-up-btn>Move up</button><button class="btn ghost small" data-down-btn>Move down</button><button class="btn danger small" data-rm>Remove</button></div>
@@ -103,7 +108,9 @@ function tabStyles(el) {
     <label class="f">The look (AI prompt for the picture)</label><textarea data-k="prompt" style="min-height:80px">${esc(s.prompt)}</textarea>
     <label class="f">How it moves in the video (leave empty to use the event's default movement)</label><textarea data-k="motion" style="min-height:60px">${esc(s.motion || '')}</textarea></div>`;
   el.innerHTML = `<div class="card"><div class="row"><label class="switch"><input type="checkbox" id="guestChoice" ${ev.guestChoice ? 'checked' : ''}> Guests pick their style on the booth</label><span class="grow"></span><button class="btn" id="lib">+ Add from the style library</button><button class="btn ghost" id="add">+ Blank style</button></div>
-    <p class="hint">Styles are either AI Create (realistic) or Toon Mode (cartoon and art). When an event has both, guests switch between AI Create and Toon Mode on the booth. When off, every guest gets the first style that is on. Upload a sample image for each style so guests can see it on the style button (one of your own test results works best). To change a theme, just edit the words, for example "swinging a golf club" to "serving a tennis ball".</p></div>
+    <p class="hint">Styles are either AI Create (realistic) or Toon Style (cartoon and art). When an event has both, guests switch between AI Create and Toon Style on the booth. When off, every guest gets the first style that is on. Upload a sample image for each style so guests can see it on the style button (one of your own test results works best). To change a theme, just edit the words, for example "swinging a golf club" to "serving a tennis ball".</p></div>
+    <div class="card"><h2>Pick the styles for this booth</h2><p class="hint">Tick up to 12 for AI Create and up to 12 for Toon Style. The booth shows them under their categories. Edit any style's wording further down after saving.</p>
+      <div id="picker"></div><button class="btn" id="pickSave" style="margin-top:10px">Save selection</button></div>
     <div class="card"><h2>Example pictures for the style buttons</h2><p class="hint">Guests choose faster when every button shows a real example. Upload one clear photo of yourself or the team and the AI makes an example for each style (about 15 seconds each, so give it a few minutes). Examples are shared by all your events. An event's own uploaded sample always wins.</p>
       <div class="row"><label class="btn ghost">Choose a staff photo<input type="file" accept="image/*" id="smPhoto" hidden></label><span id="smName" class="muted"></span>
       <select id="smScope" style="width:300px"><option value="missing">Styles in this event with no example</option><option value="event">All styles in this event</option><option value="all">Every style in the library</option></select>
@@ -121,7 +128,7 @@ function tabStyles(el) {
   $('#add', el).onclick = async () => { await put({ guestChoice: chk('guestChoice'), styles: [...collect(), { name: 'New style', prompt: '', on: true }], expressions: lines(val('expr')) }); route(); };
   $('#lib', el).onclick = async () => {
     const lib = await api('/library'), have = new Set(ev.styles.map((s) => s.id)), groups = [...new Set(lib.map((s) => s.group))];
-    const m = modal(`<h2>Style library</h2><p class="hint">Tick the styles to add to this event. You can edit them after.</p>${[['ai', 'AI Create styles'], ['toon', 'Toon Mode styles']].map(([k, title]) => `<h2 style="margin-top:20px">${title}</h2>` + groups.filter((g) => lib.some((s) => s.kind === k && s.group === g)).map((g) => `<h3 style="margin-top:14px">${esc(g)}</h3>${lib.filter((s) => s.group === g && s.kind === k).map((s) => `<label class="switch" style="display:flex;margin:6px 0;align-items:flex-start"><input type="checkbox" value="${s.id}" ${have.has(s.id) ? 'disabled checked' : ''}><span><b>${esc(s.name)}</b>${s.motion ? ' <span class="pill pink">Own animation</span>' : ''}<br><span class="muted">${esc(s.prompt.slice(0, 140))}…</span></span></label>`).join('')}`).join('')).join('')}
+    const m = modal(`<h2>Style library</h2><p class="hint">Tick the styles to add to this event. You can edit them after.</p>${[['ai', 'AI Create styles'], ['toon', 'Toon Style styles']].map(([k, title]) => `<h2 style="margin-top:20px">${title}</h2>` + groups.filter((g) => lib.some((s) => s.kind === k && s.group === g)).map((g) => `<h3 style="margin-top:14px">${esc(g)}</h3>${lib.filter((s) => s.group === g && s.kind === k).map((s) => `<label class="switch" style="display:flex;margin:6px 0;align-items:flex-start"><input type="checkbox" value="${s.id}" ${have.has(s.id) ? 'disabled checked' : ''}><span><b>${esc(s.name)}</b>${s.motion ? ' <span class="pill pink">Own animation</span>' : ''}<br><span class="muted">${esc(s.prompt.slice(0, 140))}…</span></span></label>`).join('')}`).join('')).join('')}
       <div class="row" style="margin-top:14px"><button class="btn" id="addSel">Add selected</button><button class="btn ghost" id="cancel">Cancel</button></div>`);
     m.el.querySelector('#cancel').onclick = m.close;
     m.el.querySelector('#addSel').onclick = async () => {
@@ -130,6 +137,22 @@ function tabStyles(el) {
     };
   };
   $('#save', el).onclick = (e) => busy(e.target, async () => { await saveAll(); route(); });
+  (async () => {
+    const lib = await api('/library'), ord = ev.groupOrder || [], rank = (g) => { const i = ord.indexOf(g); return i < 0 ? 99 : i; };
+    const kOf = (x) => (x.kind === 'ai' ? 'ai' : 'toon'), onIds = new Set(ev.styles.filter((x) => x.on !== false).map((x) => x.id));
+    const thumb = (x) => { const src = (ev.libSamples || {})[x.id] ? `/api/files/sample/lib/${x.id}` : STATIC.has(x.id) ? `/img/samples/${x.id}.jpg` : '/img/pencil.png'; return `<img src="${src}" alt="" style="width:34px;height:51px;object-fit:cover;border-radius:4px;background:#fdfcf8">`; };
+    $('#picker', el).innerHTML = [['ai', 'AI Create'], ['toon', 'Toon Style']].map(([k, t]) => {
+      const mine = lib.filter((x) => kOf(x) === k), groups = [...new Set(mine.map((x) => x.group))].sort((a, b) => rank(a) - rank(b));
+      return `<h3 style="margin-top:14px">${t} <span class="pill" data-count="${k}"></span></h3><div class="grid2">${groups.map((g) => `<div><b>${esc(g)}</b>${mine.filter((x) => x.group === g).map((x) => `<label class="switch" style="display:flex;gap:8px;align-items:center;margin:5px 0"><input type="checkbox" data-pick="${x.id}" data-k="${k}" ${onIds.has(x.id) ? 'checked' : ''}>${thumb(x)} ${esc(x.name)}</label>`).join('')}</div>`).join('')}</div>`;
+    }).join('');
+    const recount = () => { for (const k of ['ai', 'toon']) { const n = $$(`[data-pick][data-k=${k}]:checked`, el).length; $(`[data-count=${k}]`, el).textContent = `${n} of 12`; $$(`[data-pick][data-k=${k}]`, el).forEach((c) => { c.disabled = !c.checked && n >= 12; }); } };
+    $$('[data-pick]', el).forEach((c) => { c.onchange = recount; }); recount();
+    $('#pickSave', el).onclick = (e) => busy(e.target, async () => {
+      const want = new Set($$('[data-pick]:checked', el).map((c) => c.dataset.pick)), have = new Set(ev.styles.map((x) => x.id));
+      const styles = [...ev.styles.map((x) => (lib.some((l) => l.id === x.id) ? { ...x, on: want.has(x.id) } : x)), ...lib.filter((x) => want.has(x.id) && !have.has(x.id)).map((x) => ({ ...x, on: true }))];
+      await put({ styles, groupsOff: [] }); route();
+    });
+  })();
   $('#smPhoto', el).onchange = () => { const f = $('#smPhoto', el).files[0]; $('#smName', el).textContent = f ? f.name : ''; };
   $('#smGo', el).onclick = (e) => busy(e.target, async () => {
     const f = $('#smPhoto', el).files[0]; if (!f) return toast('Choose a staff photo first', true);
