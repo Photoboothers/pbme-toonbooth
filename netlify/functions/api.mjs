@@ -36,6 +36,7 @@ const csvCell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
 function cleanEvent(ev, b) {
   for (const k of ['name', 'boothTitle', 'tagline', 'startBtn', 'makingTitle', 'makingSub']) if (b[k] !== undefined) ev[k] = str(b[k], 80);
   for (const k of ['guestChoice', 'allowGroup']) if (b[k] !== undefined) ev[k] = !!b[k];
+  if (Array.isArray(b.mixGroups)) ev.mixGroups = b.mixGroups.map((g) => str(g, 30)).slice(0, 40);
   if (Array.isArray(b.groupsOff)) ev.groupsOff = b.groupsOff.map((g) => str(g, 30)).slice(0, 40);
   if (['both', 'ai', 'toon'].includes(b.boothType)) ev.boothType = b.boothType;
   if (b.countdown !== undefined) ev.countdown = Math.max(0, Math.min(10, Math.round(+b.countdown || 0)));

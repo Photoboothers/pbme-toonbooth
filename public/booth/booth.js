@@ -49,8 +49,15 @@ function renderStyles() {
   const list = kind ? all.filter((s) => (s.kind === 'ai' ? 'ai' : 'toon') === kind) : all, ord = ev.groupOrder || [], rank = (g) => { const i = ord.indexOf(g); return i < 0 ? 99 : i; };
   const groups = [...new Set(list.map((s) => s.group || ''))].sort((a, b) => rank(a) - rank(b));
   // lots of styles from several groups: show them under group headings so guests can find their favourite
-  $('#styleGrid').innerHTML = list.length > 6 && groups.length > 1 ? groups.map((g) => `<h3 class="sg">${esc(g || 'More')}</h3>${list.filter((s) => (s.group || '') === g).map(card).join('')}`).join('') : list.map(card).join('');
+  // a "mix" category shows as ONE card: the guest picks the category and gets a surprise style from it (like a sketch booth)
+  const mixes = new Set(ev.mixGroups || []);
+  const mixCard = (g) => { const st = list.filter((s) => (s.group || '') === g), f = st.find(sampleOf) || st[0], src = f && sampleOf(f);
+    return `<button class="style-card" data-g="${esc(g)}">${src ? `<img src="${src}" alt="" loading="lazy">` : '<div class="ph"><img src="/img/pencil.png" alt=""></div>'}<span>${esc(g)}: surprise me!</span></button>`; };
+  const cardsOf = (g) => (mixes.has(g) ? mixCard(g) : list.filter((s) => (s.group || '') === g).map(card).join(''));
+  const many = list.length > 6 && groups.length > 1 && groups.some((g) => !mixes.has(g)) && !groups.every((g) => mixes.has(g) || list.filter((s) => (s.group || '') === g).length < 2);
+  $('#styleGrid').innerHTML = many ? groups.map((g) => `<h3 class="sg">${esc(g || 'More')}</h3>` + cardsOf(g)).join('') : groups.map(cardsOf).join('');
   $('#styleGrid').querySelectorAll('[data-s]').forEach((el) => { el.onclick = () => { style = el.dataset.s; openCamera(); }; });
+  $('#styleGrid').querySelectorAll('[data-g]').forEach((el) => { el.onclick = () => { style = pickRandom(list.filter((s) => (s.group || '') === el.dataset.g)); openCamera(); }; });
 }
 // example picture for a style button: the event's own sample, then one made in admin, then our built-in examples
 let STATIC = new Set();
@@ -273,9 +280,10 @@ setInterval(heartbeat, 10000);
 window.addEventListener('online', heartbeat); window.addEventListener('offline', () => { net.online = false; updateDot(); });
 
 // ---------- buttons ----------
+const pickRandom = (arr) => (arr.length ? arr[Math.floor(Math.random() * arr.length)].id : '');   // a surprise style
 // step 1: AI Create or Toon Mode (when the event has both), step 2: the style, step 3: the photo
 const choosing = () => ev.guestChoice && onStyles().length > 1;
-$('#go').onclick = () => { style = (onStyles()[0] || {}).id || ''; kind = ''; if (!choosing()) return openCamera(); if (bothKinds()) { modeImages(); show('modes'); } else { renderStyles(); show('styles'); } };
+$('#go').onclick = () => { style = pickRandom(onStyles()); kind = ''; if (!choosing()) return openCamera(); if (bothKinds()) { modeImages(); show('modes'); } else { renderStyles(); show('styles'); } };
 $('#mdBack').onclick = goHome;
 // when an event has both AI Create and Toon Style, the booth opens straight on "Choose your style" (no Start screen)
 function startsOnModes() { return !!ev && choosing() && bothKinds(); }
