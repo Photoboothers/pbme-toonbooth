@@ -72,7 +72,7 @@ export const STYLE_LIBRARY = [
   { id: 'fashion', name: 'Fashion sketch', shape: 'portrait', caricature: false, group: 'Art',
     prompt: 'an elegant fashion-design illustration in ink and soft watercolour: full-length, tall graceful proportions, confident runway-style pose, fine ink outlines with loose watercolour washes on the clothes, on a clean white studio background' },
   { id: 'elf', name: 'Elfie selfie', shape: 'portrait', caricature: false, group: 'Festive',
-    prompt: 'a realistic, magical Christmas photograph of them dressed as Christmas elves: red and green velvet elf outfits with gold buttons and a buckled belt, pointy striped elf hats with little bells (worn over any head covering, never replacing it), pointed elf ears, curly elf shoes, smiling and giving a cheerful pose, in a snowy forest of frosted Christmas trees with fairy lights, a cosy log cabin with glowing windows behind, soft falling snow and golden sparkles',
+    prompt: 'a realistic, magical Christmas photograph, full body head to toe, of them dressed as Christmas elves: red and green velvet elf outfits with white fur trim, gold buttons and a black buckled belt, red and green striped tights or trousers, curly elf shoes with little bells, pointy striped elf hats with bells (worn over any head covering, never replacing it), pointed elf ears, standing close together smiling with a cheerful pose, in a snowy clearing of frosted Christmas trees with red baubles and fairy lights, a cosy snow-covered log cabin with glowing windows and a smoking chimney behind, warm golden sunlight, big glittering snowflakes and streaks of golden sparkle in the air',
     motion: 'Festive magic: snow keeps falling, the fairy lights twinkle, they give a big thumbs up and a cheeky wave, the bells on their elf hats jingle, then they lean in together and laugh. Keep it photo-realistic with the same outfits and snowy scene. The camera slowly pushes in. Jingle bells and soft festive sound effects only, no words.' },
   { id: 'jumper', name: 'Christmas jumper card', shape: 'portrait', caricature: true, group: 'Festive',
     prompt: 'a cosy, cheerful 3D cartoon Christmas card scene: wearing bright knitted Christmas jumpers over their own outfits, in front of a decorated Christmas tree and a crackling fireplace with stockings, warm golden glow, wrapped presents and a few floating snowflakes',
@@ -86,7 +86,7 @@ export const STYLE_LIBRARY = [
     prompt: 'a retro 1980s synthwave illustration: glowing neon pink and cyan rim lighting, airbrushed style, sunset grid landscape and palm silhouettes behind, cool sunglasses pushed up on the head' },
 ];
 const pick = (...ids) => ids.map((id) => ({ ...STYLE_LIBRARY.find((s) => s.id === id), on: true }));
-export const DEFAULT_STYLES = pick('golf', 'laugh', 'redcarpet', 'pixel');
+export const DEFAULT_STYLES = pick('elf', 'golf', 'laugh', 'redcarpet', 'pixel');
 export const DEFAULT_EXPRESSIONS = [
   'laughing out loud, eyes squeezed shut with joy',
   'amazed, mouth wide open in a big "wow"',
