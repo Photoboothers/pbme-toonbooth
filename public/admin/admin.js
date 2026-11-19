@@ -109,8 +109,8 @@ function tabStyles(el) {
     <label class="f">How it moves in the video (leave empty to use the event's default movement)</label><textarea data-k="motion" style="min-height:60px">${esc(s.motion || '')}</textarea></div>`;
   el.innerHTML = `<div class="card"><div class="row"><label class="switch"><input type="checkbox" id="guestChoice" ${ev.guestChoice ? 'checked' : ''}> Guests pick their style on the booth</label><span class="grow"></span><button class="btn" id="lib">+ Add from the style library</button><button class="btn ghost" id="add">+ Blank style</button></div>
     <p class="hint">Styles are either AI Create (realistic) or Toon Style (cartoon and art). When an event has both, guests switch between AI Create and Toon Style on the booth. When off, each guest gets a surprise style from the ones ticked (like a sketch booth). Upload a sample image for each style so guests can see it on the style button (one of your own test results works best). To change a theme, just edit the words, for example "swinging a golf club" to "serving a tennis ball".</p></div>
-    <div class="card"><h2>Pick the styles for this booth</h2><p class="hint">Tick up to 12 for AI Create and up to 12 for Toon Style. The booth shows them under their categories. Tick <b>Mix</b> on a category to show it as one button: the guest picks the category and gets a surprise style from it, like a sketch booth. Edit any style's wording further down after saving.</p>
-      <div id="picker"></div><button class="btn" id="pickSave" style="margin-top:10px">Save selection</button></div>
+    <div class="card"><h2>Pick the styles for this booth</h2><p class="hint">Tick up to 12 for AI Create and up to 12 for Toon Style. The booth shows them under their categories. Use <b>+ Add your own style</b> for anything not in the list. (Optional: tick <b>Mix</b> on a category to show it as one surprise button.) Edit any style's wording further down after saving.</p>
+      <div id="picker"></div><div class="row" style="margin-top:10px"><button class="btn" id="pickSave">Save selection</button><button class="btn ghost" id="ownStyle">+ Add your own style</button></div></div>
     <div class="card"><h2>Example pictures for the style buttons</h2><p class="hint">Guests choose faster when every button shows a real example. Upload one clear photo of yourself or the team and the AI makes an example for each style (about 15 seconds each, so give it a few minutes). Examples are shared by all your events. An event's own uploaded sample always wins.</p>
       <div class="row"><label class="btn ghost">Choose a staff photo<input type="file" accept="image/*" id="smPhoto" hidden></label><span id="smName" class="muted"></span>
       <select id="smScope" style="width:300px"><option value="missing">Styles in this event with no example</option><option value="event">All styles in this event</option><option value="all">Every style in the library</option></select>
@@ -142,14 +142,32 @@ function tabStyles(el) {
     const kOf = (x) => (x.kind === 'ai' ? 'ai' : 'toon'), onIds = new Set(ev.styles.filter((x) => x.on !== false).map((x) => x.id));
     const thumb = (x) => { const src = (ev.libSamples || {})[x.id] ? `/api/files/sample/lib/${x.id}` : STATIC.has(x.id) ? `/img/samples/${x.id}.jpg` : '/img/pencil.png'; return `<img src="${src}" alt="" style="width:34px;height:51px;object-fit:cover;border-radius:4px;background:#fdfcf8">`; };
     $('#picker', el).innerHTML = [['ai', 'AI Create'], ['toon', 'Toon Style']].map(([k, t]) => {
-      const mine = lib.filter((x) => kOf(x) === k), groups = [...new Set(mine.map((x) => x.group))].sort((a, b) => rank(a) - rank(b));
+      const custom = ev.styles.filter((x) => !lib.some((l) => l.id === x.id)).map((x) => ({ ...x, group: x.group || 'Our own styles' }));
+      const mine = [...lib, ...custom].filter((x) => kOf(x) === k), groups = [...new Set(mine.map((x) => x.group))].sort((a, b) => rank(a) - rank(b));
       return `<h3 style="margin-top:14px">${t} <span class="pill" data-count="${k}"></span></h3><div class="grid2">${groups.map((g) => `<div><b>${esc(g)}</b> <label class="switch" style="font-size:13px" title="Guests pick this category and get a surprise style from it"><input type="checkbox" data-mix="${esc(g)}" ${(ev.mixGroups || []).includes(g) ? 'checked' : ''}> Mix (one button, surprise style)</label>${mine.filter((x) => x.group === g).map((x) => `<label class="switch" style="display:flex;gap:8px;align-items:center;margin:5px 0"><input type="checkbox" data-pick="${x.id}" data-k="${k}" ${onIds.has(x.id) ? 'checked' : ''}>${thumb(x)} ${esc(x.name)}</label>`).join('')}</div>`).join('')}</div>`;
     }).join('');
     const recount = () => { for (const k of ['ai', 'toon']) { const n = $$(`[data-pick][data-k=${k}]:checked`, el).length; $(`[data-count=${k}]`, el).textContent = `${n} of 12`; $$(`[data-pick][data-k=${k}]`, el).forEach((c) => { c.disabled = !c.checked && n >= 12; }); } };
     $$('[data-pick]', el).forEach((c) => { c.onchange = recount; }); recount();
+    $('#ownStyle', el).onclick = () => {
+      const groups = [...new Set([...lib, ...ev.styles].map((x) => x.group).filter(Boolean))];
+      const m = modal(`<h2>Add your own style</h2><label class="f">Name guests see</label><input type="text" id="osName" placeholder="e.g. Desert safari">
+        <label class="f">Mode</label><select id="osKind"><option value="ai">AI Create</option><option value="toon">Toon Style</option></select>
+        <label class="f">Category</label><input type="text" id="osGroup" list="osGroups" placeholder="Pick one or type a new one"><datalist id="osGroups">${groups.map((g) => `<option value="${esc(g)}">`).join('')}</datalist>
+        <label class="f">The look (what the AI should create)</label><textarea id="osPrompt" placeholder="e.g. a photo-realistic image of them on a desert safari in an open 4x4 at sunset, dunes and camels behind"></textarea>
+        <label class="f">How it moves in the video (optional)</label><textarea id="osMotion" placeholder="e.g. the 4x4 bounces over a dune, they laugh and wave"></textarea>
+        <div class="row" style="margin-top:12px"><button class="btn" id="osAdd">Add and tick it</button><button class="btn ghost" id="osCancel">Cancel</button></div>`);
+      m.el.querySelector('#osCancel').onclick = m.close;
+      m.el.querySelector('#osAdd').onclick = async () => {
+        const q = (i) => m.el.querySelector(i).value.trim(), name = q('#osName'), prompt = q('#osPrompt');
+        if (!name || !prompt) return toast('Add a name and the look', true);
+        const kind = q('#osKind'), full = ev.styles.filter((x) => x.on !== false && (x.kind === 'ai' ? 'ai' : 'toon') === kind).length >= 12;
+        await put({ styles: [...ev.styles, { name, kind, group: q('#osGroup') || 'Our own styles', prompt, motion: q('#osMotion'), on: !full }] }); m.close(); route();
+        if (full) toast(`Added. ${kind === 'ai' ? 'AI Create' : 'Toon Style'} already has 12 ticked, so untick one and tick "${name}" to put it on the booth.`, true);
+      };
+    };
     $('#pickSave', el).onclick = (e) => busy(e.target, async () => {
       const want = new Set($$('[data-pick]:checked', el).map((c) => c.dataset.pick)), have = new Set(ev.styles.map((x) => x.id));
-      const styles = [...ev.styles.map((x) => (lib.some((l) => l.id === x.id) ? { ...x, on: want.has(x.id) } : x)), ...lib.filter((x) => want.has(x.id) && !have.has(x.id)).map((x) => ({ ...x, on: true }))];
+      const styles = [...ev.styles.map((x) => ({ ...x, on: want.has(x.id) })), ...lib.filter((x) => want.has(x.id) && !have.has(x.id)).map((x) => ({ ...x, on: true }))];
       await put({ styles, groupsOff: [], mixGroups: $$('[data-mix]:checked', el).map((c) => c.dataset.mix) }); route();
     });
   })();
