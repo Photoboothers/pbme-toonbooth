@@ -39,7 +39,14 @@
   const ua = navigator.userAgent, android = /Android/i.test(ua), ios = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1), mobile = android || ios;
   const get = async () => { const r = await fetch('/api/public/v/' + encodeURIComponent(id), { cache: 'no-store' }); if (!r.ok) throw 0; return r.json(); };
   let d;
-  try { d = await get(); } catch { $('#wrap').innerHTML = '<p>This link is not available.</p>'; return; }
+  const get2 = async () => { const r = await fetch('/api/public/v/' + encodeURIComponent(id), { cache: 'no-store' }); if (r.status === 202) return { pending: true }; if (!r.ok) throw 0; return r.json(); };
+  for (;;) {   // the picture may still be on its way from the booth: wait here and show it the moment it arrives
+    try { d = await get2(); } catch { $('#wrap').innerHTML = '<p>This link is not available.</p>'; return; }
+    if (!d.pending) break;
+    $('#h').textContent = 'Your picture is on its way'; $('#note').hidden = false; $('#note').textContent = 'It\u2019s being created right now. Keep this page open and it will appear by itself.'; $('#saveP').hidden = true;
+    await new Promise((r) => setTimeout(r, 8000));
+  }
+  $('#saveP').hidden = false;
   const c = d.colors || {}, root = document.documentElement.style;
   if (c.bg) root.setProperty('--bg', c.bg); if (c.accent) root.setProperty('--accent', c.accent); if (c.text) root.setProperty('--text', c.text);
   if (d.logo) { $('#logo').src = d.logo; $('#logo').hidden = false; }

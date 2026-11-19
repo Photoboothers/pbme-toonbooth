@@ -92,7 +92,9 @@ export default async (req) => {
     // ---------- public: guest page, media, email ----------
     if (seg[0] === 'public') {
       if (seg[1] === 'v' && method === 'GET') {
-        const m = await shotMeta(seg[2]); if (!m || m.toon !== 'ready') return err('Not found', 404);
+        const m = await shotMeta(seg[2]);
+        if (!m) return validId(seg[2]) ? json({ pending: true, waiting: true }, 202) : err('Not found', 404);   // not sent from the booth yet
+        if (m.toon !== 'ready') return json({ pending: true }, 202);
         const ev = (await EV().get(m.eventId, { type: 'json' })) || {};
         return json({ id: m.id, name: ev.name, heading: (ev.email && ev.email.heading) || 'Your picture', colors: ev.colors || {},
           logo: ev.hasLogo ? `/api/files/logo/${ev.id}?v=${ev.filesV || 0}` : '', video: m.video, toon: `/api/public/media/${m.id}/toon` });
@@ -173,7 +175,15 @@ export default async (req) => {
       if (seg.length === 1 && method === 'POST') { const b = await body(req); const ev = newEvent(rid(8), str(b.name, 80).trim()); await EV().setJSON(ev.id, ev); return json(ev); }
       const id = seg[1]; if (!validId(id)) return err('Bad event id');
       const ev = await EV().get(id, { type: 'json' }); if (!ev) return err('Event not found', 404);
-      if (seg.length === 2 && method === 'GET') return json(ev);
+      if (seg.length === 2 && method === 'GET') { const st = (await SET().get('global', { type: 'json' })) || {}; return json({ ...ev, libSamples: st.libSamples || {} }); }
+      if (seg[2] === 'samples' && method === 'POST') {   // make example pictures for the style buttons from one staff photo
+        if (!process.env.GEMINI_API_KEY) return err('GEMINI_API_KEY is not set in Netlify yet (then redeploy).', 503);
+        const buf = await req.arrayBuffer(); if (!buf.byteLength || buf.byteLength > 5 * 1024 * 1024) return err('Please choose a photo under 5 MB');
+        const ids = (url.searchParams.get('styles') || '').split(',').filter((x) => /^[a-z0-9]{2,12}$/.test(x)).slice(0, 100); if (!ids.length) return err('No styles chosen');
+        const key = rid(8); await FILES().set(`samplephoto/${key}`, buf, { metadata: { type: 'image/jpeg' } });
+        for (let i = 0; i < ids.length; i += 6) await fetch(`${origin}/.netlify/functions/sample-background`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ eventId: id, photo: key, styles: ids.slice(i, i + 6), k: jobKey('samples:' + key) }) });
+        return json({ ok: true, count: ids.length });
+      }
       if (seg.length === 2 && method === 'PUT') { cleanEvent(ev, await body(req)); await EV().setJSON(id, ev); return json(ev); }
       if (seg.length === 2 && method === 'DELETE') {
         for (const m of await listShots(id)) await deleteShot(id, m.id);
@@ -197,7 +207,9 @@ export default async (req) => {
         const on = (ev.styles || []).filter((s) => s.on !== false), want = url.searchParams.get('style');
         const style = (on.find((s) => s.id === want) || on[0] || (ev.styles || [])[0] || {}).id;
         const ex = ev.expressions && ev.expressions.length ? ev.expressions : ['big happy smile'];
-        const id = rid(10);
+        const wantId = url.searchParams.get('id');   // the booth makes the id itself, so a retry after a dropped connection never makes a second copy
+        const id = /^[a-z0-9]{10}$/.test(wantId || '') ? wantId : rid(10);
+        if (await SIDX().get(id, { type: 'json' })) return json({ id, existed: true });
         await FILES().set(`photo/${id}`, buf, { metadata: { type: 'image/jpeg' } });
         const meta = { id, eventId, created: Date.now(), style, expression: ex[Math.floor(Math.random() * ex.length)], team: url.searchParams.get('team') === '1',
           toon: 'making', video: ev.video && ev.video.on ? 'waiting' : 'off', printed: 0, emails: [] };

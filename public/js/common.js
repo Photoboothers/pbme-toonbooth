@@ -23,7 +23,7 @@ export function modal(html) {
   return { el: bg.firstChild, close: () => bg.remove() };
 }
 export async function ensureLogin(title = 'Sign in') {
-  try { await api('/me', { allow401: true }); return; } catch { /* show form */ }
+  try { const r = await fetch('/api/me', { credentials: 'same-origin', cache: 'no-store' }); if (r.ok) return; } catch { return; }   // offline: carry on with the saved sign-in
   await new Promise((resolve) => {
     const m = modal(`<h2>${esc(title)}</h2><form><input type="password" placeholder="Admin password" autocomplete="current-password"><p class="hint" style="color:var(--bad)"></p><button class="btn" style="margin-top:10px;width:100%">Sign in</button></form>`);
     m.el.querySelector('form').onsubmit = async (e) => {

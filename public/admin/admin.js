@@ -2,7 +2,8 @@ import { api, esc, toast, modal, loadImg, composePrint } from '/js/common.js';
 
 const app = document.getElementById('app');
 const $ = (s, r = app) => r.querySelector(s), $$ = (s, r = app) => Array.from(r.querySelectorAll(s));
-let settings = null, ev = null;
+let settings = null, ev = null, STATIC = new Set();
+fetch('/img/samples/list.json').then((r) => r.json()).then((l) => { STATIC = new Set(l); }).catch(() => {});
 const busy = async (btn, fn) => { const t = btn.textContent; btn.disabled = true; btn.textContent = 'Working…'; try { return await fn(); } catch (e) { toast(e.message, true); } finally { btn.disabled = false; btn.textContent = t; } };
 const put = async (body) => { ev = await api('/events/' + ev.id, { method: 'PUT', body }); toast('Saved'); return ev; };
 const upload = (key, file) => api('/files/' + key, { method: 'PUT', body: file, headers: { 'content-type': file.type || 'image/png' } });
@@ -96,13 +97,17 @@ function tabStyles(el) {
       <label class="switch" title="Gives each guest a random fun expression from the list below"><input type="checkbox" data-k="caricature" ${s.caricature ? 'checked' : ''}> Fun expressions</label>
       <label class="switch" title="Uses the event logo (Booth look tab)"><input type="checkbox" data-k="logo" ${s.logo ? 'checked' : ''}> Event logo on clothes</label><span class="grow"></span>
       <button class="btn ghost small" data-up-btn>Move up</button><button class="btn ghost small" data-down-btn>Move down</button><button class="btn danger small" data-rm>Remove</button></div>
-    <div class="row" style="margin-top:8px"><span class="pill ${s.hasSample ? 'ok' : ''}">${s.hasSample ? 'Sample image' : 'No sample image'}</span><label class="btn ghost small">Upload sample<input type="file" accept="image/*" hidden data-up="sample/${ev.id}/${esc(s.id)}"></label>
+    <div class="row" style="margin-top:8px">${s.hasSample ? '<span class="pill ok">Own sample image</span>' : (ev.libSamples || {})[s.id] ? '<span class="pill ok">Made from staff photo</span>' : STATIC.has(s.id) ? '<span class="pill ok">Built-in example</span>' : '<span class="pill">No example yet (shows a pencil)</span>'}<label class="btn ghost small">Upload sample<input type="file" accept="image/*" hidden data-up="sample/${ev.id}/${esc(s.id)}"></label>
       ${s.hasSample ? `<button class="btn danger small" data-del="sample/${ev.id}/${esc(s.id)}">Remove sample</button>` : ''}</div>
     <div class="row" style="margin-top:8px"><label class="f" style="margin:0">Big word in the picture (optional, one short word such as a city)</label><input type="text" data-k="word" value="${esc(s.word || '')}" maxlength="20" style="width:200px"></div>
     <label class="f">The look (AI prompt for the picture)</label><textarea data-k="prompt" style="min-height:80px">${esc(s.prompt)}</textarea>
     <label class="f">How it moves in the video (leave empty to use the event's default movement)</label><textarea data-k="motion" style="min-height:60px">${esc(s.motion || '')}</textarea></div>`;
   el.innerHTML = `<div class="card"><div class="row"><label class="switch"><input type="checkbox" id="guestChoice" ${ev.guestChoice ? 'checked' : ''}> Guests pick their style on the booth</label><span class="grow"></span><button class="btn" id="lib">+ Add from the style library</button><button class="btn ghost" id="add">+ Blank style</button></div>
     <p class="hint">Styles are either AI Create (realistic) or Toon Mode (cartoon and art). When an event has both, guests switch between AI Create and Toon Mode on the booth. When off, every guest gets the first style that is on. Upload a sample image for each style so guests can see it on the style button (one of your own test results works best). To change a theme, just edit the words, for example "swinging a golf club" to "serving a tennis ball".</p></div>
+    <div class="card"><h2>Example pictures for the style buttons</h2><p class="hint">Guests choose faster when every button shows a real example. Upload one clear photo of yourself or the team and the AI makes an example for each style (about 15 seconds each, so give it a few minutes). Examples are shared by all your events. An event's own uploaded sample always wins.</p>
+      <div class="row"><label class="btn ghost">Choose a staff photo<input type="file" accept="image/*" id="smPhoto" hidden></label><span id="smName" class="muted"></span>
+      <select id="smScope" style="width:300px"><option value="missing">Styles in this event with no example</option><option value="event">All styles in this event</option><option value="all">Every style in the library</option></select>
+      <button class="btn" id="smGo">Make examples</button></div><p class="hint" id="smMsg"></p></div>
     <div id="styles">${ev.styles.map(row).join('')}</div>
     <div class="card" style="margin-top:18px"><h2>Fun expressions</h2><p class="hint">One per line. Styles with "Fun expressions" ticked give each guest one of these at random.</p><textarea id="expr">${esc(ev.expressions.join('\n'))}</textarea></div>
     <button class="btn" id="save">Save styles</button>`;
@@ -125,6 +130,22 @@ function tabStyles(el) {
     };
   };
   $('#save', el).onclick = (e) => busy(e.target, async () => { await saveAll(); route(); });
+  $('#smPhoto', el).onchange = () => { const f = $('#smPhoto', el).files[0]; $('#smName', el).textContent = f ? f.name : ''; };
+  $('#smGo', el).onclick = (e) => busy(e.target, async () => {
+    const f = $('#smPhoto', el).files[0]; if (!f) return toast('Choose a staff photo first', true);
+    const scope = val('smScope'), lib = scope === 'all' ? await api('/library') : null;
+    const ids = scope === 'all' ? lib.map((x) => x.id) : ev.styles.filter((x) => scope === 'event' || !(x.hasSample || (ev.libSamples || {})[x.id] || STATIC.has(x.id))).map((x) => x.id);
+    if (!ids.length) return toast('Every style already has an example');
+    const small = await shrink(f);
+    const r = await api(`/events/${ev.id}/samples?styles=${ids.join(',')}`, { method: 'POST', body: small, headers: { 'content-type': 'image/jpeg' } });
+    $('#smMsg', el).textContent = `Making ${r.count} examples now. Come back to this page in a few minutes to see them.`;
+  });
+}
+// shrink a phone photo before uploading (keeps it under the size limit and quick to send)
+async function shrink(file) {
+  const b = await createImageBitmap(file), k = Math.min(1, 1600 / Math.max(b.width, b.height)), c = document.createElement('canvas');
+  c.width = Math.round(b.width * k); c.height = Math.round(b.height * k); c.getContext('2d').drawImage(b, 0, 0, c.width, c.height);
+  return new Promise((r) => c.toBlob(r, 'image/jpeg', 0.9));
 }
 
 function tabPrint(el) {

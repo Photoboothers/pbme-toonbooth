@@ -22,9 +22,17 @@
   <a class="corner" id="staff" href="#">Staff</a>
 </section>
 
+<section id="modes" class="screen hidden">
+  <h2 class="ask">What would you like?</h2>
+  <div class="mode-grid">
+    <button class="mode-card" data-mode="ai"><img id="modeAiImg" alt=""><b>AI Create</b><span>Real photos of you, anywhere and anytime</span></button>
+    <button class="mode-card" data-mode="toon"><img id="modeToonImg" alt=""><b>Toon Mode</b><span>Cartoons, caricatures and art</span></button>
+  </div>
+  <button class="btn ghost light" id="mdBack">Back</button>
+</section>
+
 <section id="styles" class="screen hidden">
-  <h2 class="ask">Pick your style</h2>
-  <div id="kinds" class="kinds hidden"><button data-kind="ai">AI Create</button><button data-kind="toon">Toon Mode</button></div>
+  <h2 class="ask" id="stTitle">Pick your style</h2>
   <div id="styleGrid" class="style-grid"></div>
   <button class="btn ghost light" id="stBack">Back</button>
 </section>
@@ -59,6 +67,7 @@
     <div class="res-side">
       <h2 id="resTitle" class="ask">Looking good!</h2>
       <p id="printMsg" class="fine big hidden">Your print is on its way.</p>
+      <p id="resNote" class="fine hidden"></p>
       <form id="ebox" class="ebox hidden" autocomplete="off">
         <b id="eTitle">Get your video by email</b>
         <input type="email" id="bemail" placeholder="your@email.com" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" required>
@@ -72,6 +81,7 @@
   </div>
 </section>
 
+<a href="#" id="netdot" class="netdot" title="Connection"></a>
 <iframe id="printframe" title="print" style="position:fixed;width:0;height:0;border:0;right:0;bottom:0"></iframe>
 <script type="module" src="/booth/booth.js"></script>
 </body>

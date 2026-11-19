@@ -64,3 +64,14 @@ body.booth { --bg: #121012; --accent: #ED2F5B; --text: #fff; background: var(--b
 .kinds { display: flex; gap: 10px; background: color-mix(in srgb, var(--text) 10%, transparent); padding: 6px; border-radius: 999px; }
 .kinds button { border: 0; border-radius: 999px; padding: 14px 34px; font: 800 20px Montserrat, sans-serif; background: transparent; color: var(--text); cursor: pointer; }
 .kinds button.on { background: var(--accent); color: #fff; }
+.netdot { position: fixed; left: 12px; bottom: 12px; min-width: 14px; height: 14px; padding: 0 4px; border-radius: 10px; font: 700 10px/14px Montserrat, sans-serif; color: #fff; text-align: center; text-decoration: none; opacity: .75; z-index: 50; background: #888; }
+.netdot.ok { background: #1f9d55; } .netdot.warn { background: #e0a106; } .netdot.bad { background: #d32f2f; }
+.netdot.inst { box-shadow: 0 0 0 3px rgba(255,255,255,.6); }
+#resNote { font-size: 16px; max-width: 32ch; }
+.mode-grid { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; }
+.mode-card { width: min(380px, 42vw); border: 0; border-radius: 26px; padding: 14px 14px 22px; background: color-mix(in srgb, var(--text) 10%, transparent); color: var(--text); cursor: pointer; display: flex; flex-direction: column; gap: 8px; align-items: center; font-family: Montserrat, sans-serif; }
+.mode-card img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 18px; background: #fdfcf8; }
+.mode-card b { font-size: clamp(24px, 3vw, 34px); font-weight: 800; }
+.mode-card span { font-size: 16px; opacity: .8; }
+.mode-card:active { transform: scale(.98); }
+@media (orientation: portrait) { .mode-card { width: min(420px, 44vw); } }
