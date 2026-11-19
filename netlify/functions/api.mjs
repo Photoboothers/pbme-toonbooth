@@ -44,7 +44,7 @@ function cleanEvent(ev, b) {
     ev.styles = b.styles.slice(0, 100).map((s, i) => {
       let id = /^[a-z0-9]{2,12}$/.test(s.id || '') ? s.id : 's' + rid(5); if (seen.has(id)) id = (id.slice(0, 6) + rid(5)); seen.add(id);
       return { id, name: str(s.name, 30) || 'Style ' + (i + 1), prompt: str(s.prompt, 1200), motion: str(s.motion, 1500), shape: 'portrait', kind: s.kind === 'ai' ? 'ai' : 'toon',
-        caricature: !!s.caricature, logo: !!s.logo, group: str(s.group, 30), on: s.on !== false, hasSample: !!s.hasSample };
+        caricature: !!s.caricature, logo: !!s.logo, word: str(s.word, 20).trim(), group: str(s.group, 30), on: s.on !== false, hasSample: !!s.hasSample };
     });
   }
   if (Array.isArray(b.expressions)) ev.expressions = b.expressions.map((x) => str(x, 200).trim()).filter(Boolean).slice(0, 20);

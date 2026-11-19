@@ -98,6 +98,7 @@ function tabStyles(el) {
       <button class="btn ghost small" data-up-btn>Move up</button><button class="btn danger small" data-rm>Remove</button></div>
     <div class="row" style="margin-top:8px"><span class="pill ${s.hasSample ? 'ok' : ''}">${s.hasSample ? 'Sample image' : 'No sample image'}</span><label class="btn ghost small">Upload sample<input type="file" accept="image/*" hidden data-up="sample/${ev.id}/${esc(s.id)}"></label>
       ${s.hasSample ? `<button class="btn danger small" data-del="sample/${ev.id}/${esc(s.id)}">Remove sample</button>` : ''}</div>
+    <div class="row" style="margin-top:8px"><label class="f" style="margin:0">Big word in the picture (optional, one short word such as a city)</label><input type="text" data-k="word" value="${esc(s.word || '')}" maxlength="20" style="width:200px"></div>
     <label class="f">The look (AI prompt for the picture)</label><textarea data-k="prompt" style="min-height:80px">${esc(s.prompt)}</textarea>
     <label class="f">How it moves in the video (leave empty to use the event's default movement)</label><textarea data-k="motion" style="min-height:60px">${esc(s.motion || '')}</textarea></div>`;
   el.innerHTML = `<div class="card"><div class="row"><label class="switch"><input type="checkbox" id="guestChoice" ${ev.guestChoice ? 'checked' : ''}> Guests pick their style on the booth</label><span class="grow"></span><button class="btn" id="lib">+ Add from the style library</button><button class="btn ghost" id="add">+ Blank style</button></div>
@@ -106,7 +107,7 @@ function tabStyles(el) {
     <div class="card" style="margin-top:18px"><h2>Fun expressions</h2><p class="hint">One per line. Styles with "Fun expressions" ticked give each guest one of these at random.</p><textarea id="expr">${esc(ev.expressions.join('\n'))}</textarea></div>
     <button class="btn" id="save">Save styles</button>`;
   wireFiles(el);
-  const collect = () => $$('[data-style]', el).map((c) => ({ id: c.dataset.style, on: $('[data-k=on]', c).checked, name: $('[data-k=name]', c).value, kind: $('[data-k=kind]', c).value, caricature: $('[data-k=caricature]', c).checked, logo: $('[data-k=logo]', c).checked, group: (ev.styles.find((s) => s.id === c.dataset.style) || {}).group || '',
+  const collect = () => $$('[data-style]', el).map((c) => ({ id: c.dataset.style, on: $('[data-k=on]', c).checked, name: $('[data-k=name]', c).value, kind: $('[data-k=kind]', c).value, caricature: $('[data-k=caricature]', c).checked, logo: $('[data-k=logo]', c).checked, word: $('[data-k=word]', c).value, group: (ev.styles.find((s) => s.id === c.dataset.style) || {}).group || '',
     prompt: $('[data-k=prompt]', c).value, motion: $('[data-k=motion]', c).value, hasSample: (ev.styles.find((s) => s.id === c.dataset.style) || {}).hasSample }));
   const saveAll = () => put({ guestChoice: chk('guestChoice'), styles: collect(), expressions: lines(val('expr')) });
   $$('[data-rm]', el).forEach((b) => { b.onclick = () => { if (confirm('Remove this style from the event?')) b.closest('[data-style]').remove(); }; });
