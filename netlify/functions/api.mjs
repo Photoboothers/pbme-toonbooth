@@ -44,7 +44,7 @@ function cleanEvent(ev, b) {
     ev.styles = b.styles.slice(0, 24).map((s, i) => {
       let id = /^[a-z0-9]{2,12}$/.test(s.id || '') ? s.id : 's' + rid(5); if (seen.has(id)) id = (id.slice(0, 6) + rid(5)); seen.add(id);
       return { id, name: str(s.name, 30) || 'Style ' + (i + 1), prompt: str(s.prompt, 1200), motion: str(s.motion, 1500), shape: s.shape === 'landscape' ? 'landscape' : 'portrait',
-        caricature: !!s.caricature, group: str(s.group, 30), on: s.on !== false, hasSample: !!s.hasSample };
+        caricature: !!s.caricature, logo: !!s.logo, group: str(s.group, 30), on: s.on !== false, hasSample: !!s.hasSample };
     });
   }
   if (Array.isArray(b.expressions)) ev.expressions = b.expressions.map((x) => str(x, 200).trim()).filter(Boolean).slice(0, 20);
@@ -61,6 +61,10 @@ function cleanEvent(ev, b) {
     if (p.copies !== undefined) ev.print.copies = Math.max(1, Math.min(5, Math.round(+p.copies || 1)));
     if (p.qr !== undefined) ev.print.qr = !!p.qr;
     if (p.inset !== undefined) ev.print.inset = !!p.inset;
+    // where the picture sits on the page, in % (so a branded card frame can have its own window); default = whole page
+    const win = (w) => { const n = (v, d) => { const x = Number(v); return Number.isFinite(x) ? Math.max(0, Math.min(100, x)) : d; }; const r = { x: n(w.x, 0), y: n(w.y, 0), w: n(w.w, 100), h: n(w.h, 100) }; r.w = Math.min(r.w, 100 - r.x) || 100; r.h = Math.min(r.h, 100 - r.y) || 100; return r; };
+    if (p.win && typeof p.win === 'object') ev.print.win = win(p.win);
+    if (p.winL && typeof p.winL === 'object') ev.print.winL = win(p.winL);
   }
   if (b.email && typeof b.email === 'object') {
     const e = b.email; ev.email = { ...ev.email };

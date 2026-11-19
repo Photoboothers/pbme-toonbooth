@@ -45,8 +45,9 @@ export function composePrint(ev, toon, frames, qrUrl, o = {}) {
   const w = o.w || (land ? PH : PW), h = o.h || (land ? PW : PH), k = Math.min(w, h) / PW, p = ev.print || {};
   const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
   g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h);
-  if (toon) cover(g, toon, w, h);
-  else { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#e8e3e6'); gr.addColorStop(1, '#cfc7cc'); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.fillStyle = '#8a8288'; g.font = `700 ${60 * k}px Montserrat, Arial`; g.textAlign = 'center'; g.fillText('Your picture here', w / 2, h / 2); }
+  const wn = (land ? p.winL : p.win) || { x: 0, y: 0, w: 100, h: 100 }, wx = wn.x / 100 * w, wy = wn.y / 100 * h, ww = wn.w / 100 * w, wh = wn.h / 100 * h;
+  if (toon) { g.save(); g.translate(wx, wy); g.beginPath(); g.rect(0, 0, ww, wh); g.clip(); cover(g, toon, ww, wh); g.restore(); }
+  else { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#e8e3e6'); gr.addColorStop(1, '#cfc7cc'); g.fillStyle = gr; g.fillRect(wx, wy, ww, wh); g.fillStyle = '#8a8288'; g.font = `700 ${60 * k}px Montserrat, Arial`; g.textAlign = 'center'; g.fillText('Your picture here', wx + ww / 2, wy + wh / 2); }
   const fr = frames && (land ? frames.l : frames.p); if (fr) g.drawImage(fr, 0, 0, w, h);
   if (p.inset && (o.photo || !toon)) {   // the original photo as a little tilted polaroid, bottom left
     const pw = 270 * k, ph = pw * 1.5, b = 14 * k, x = 50 * k, y = h - ph - b * 2 - 46 * k - 60 * k;

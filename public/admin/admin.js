@@ -93,7 +93,8 @@ function tabStyles(el) {
   const row = (s) => `<div class="card" data-style="${esc(s.id)}"><div class="row"><label class="switch"><input type="checkbox" data-k="on" ${s.on !== false ? 'checked' : ''}> On</label>
       <input type="text" data-k="name" value="${esc(s.name)}" style="width:220px">
       <select data-k="shape" style="width:150px"><option value="portrait" ${s.shape !== 'landscape' ? 'selected' : ''}>Portrait</option><option value="landscape" ${s.shape === 'landscape' ? 'selected' : ''}>Landscape</option></select>
-      <label class="switch" title="Gives each guest a random fun expression from the list below"><input type="checkbox" data-k="caricature" ${s.caricature ? 'checked' : ''}> Fun expressions</label><span class="grow"></span>
+      <label class="switch" title="Gives each guest a random fun expression from the list below"><input type="checkbox" data-k="caricature" ${s.caricature ? 'checked' : ''}> Fun expressions</label>
+      <label class="switch" title="Uses the event logo (Booth look tab)"><input type="checkbox" data-k="logo" ${s.logo ? 'checked' : ''}> Event logo on clothes</label><span class="grow"></span>
       <button class="btn ghost small" data-up-btn>Move up</button><button class="btn danger small" data-rm>Remove</button></div>
     <div class="row" style="margin-top:8px"><span class="pill ${s.hasSample ? 'ok' : ''}">${s.hasSample ? 'Sample image' : 'No sample image'}</span><label class="btn ghost small">Upload sample<input type="file" accept="image/*" hidden data-up="sample/${ev.id}/${esc(s.id)}"></label>
       ${s.hasSample ? `<button class="btn danger small" data-del="sample/${ev.id}/${esc(s.id)}">Remove sample</button>` : ''}</div>
@@ -105,7 +106,7 @@ function tabStyles(el) {
     <div class="card" style="margin-top:18px"><h2>Fun expressions</h2><p class="hint">One per line. Styles with "Fun expressions" ticked give each guest one of these at random.</p><textarea id="expr">${esc(ev.expressions.join('\n'))}</textarea></div>
     <button class="btn" id="save">Save styles</button>`;
   wireFiles(el);
-  const collect = () => $$('[data-style]', el).map((c) => ({ id: c.dataset.style, on: $('[data-k=on]', c).checked, name: $('[data-k=name]', c).value, shape: $('[data-k=shape]', c).value, caricature: $('[data-k=caricature]', c).checked, group: (ev.styles.find((s) => s.id === c.dataset.style) || {}).group || '',
+  const collect = () => $$('[data-style]', el).map((c) => ({ id: c.dataset.style, on: $('[data-k=on]', c).checked, name: $('[data-k=name]', c).value, shape: $('[data-k=shape]', c).value, caricature: $('[data-k=caricature]', c).checked, logo: $('[data-k=logo]', c).checked, group: (ev.styles.find((s) => s.id === c.dataset.style) || {}).group || '',
     prompt: $('[data-k=prompt]', c).value, motion: $('[data-k=motion]', c).value, hasSample: (ev.styles.find((s) => s.id === c.dataset.style) || {}).hasSample }));
   const saveAll = () => put({ guestChoice: chk('guestChoice'), styles: collect(), expressions: lines(val('expr')) });
   $$('[data-rm]', el).forEach((b) => { b.onclick = () => { if (confirm('Remove this style from the event?')) b.closest('[data-style]').remove(); }; });
@@ -137,6 +138,9 @@ function tabPrint(el) {
     <label class="switch" style="margin-top:8px"><input type="checkbox" id="pqr" ${p.qr ? 'checked' : ''}> Small QR code (bottom right) that opens the guest's page</label>
     ${fileRow('Frame (portrait)', 'frame/' + ev.id, p.hasFrame, 'Transparent PNG, 1200 x 1800 px, laid over portrait styles.')}
     ${fileRow('Frame (landscape)', 'framel/' + ev.id, p.hasFrameL, 'Transparent PNG, 1800 x 1200 px, laid over landscape styles (such as the pixel game). They print turned on the same 4x6 paper.')}
+    <label class="f">Picture window, portrait (% of the page: left, top, width, height)</label><div class="row">${['x', 'y', 'w', 'h'].map((k) => `<input type="number" min="0" max="100" data-win="p${k}" value="${(p.win || { x: 0, y: 0, w: 100, h: 100 })[k]}" style="width:80px">`).join('')}</div>
+    <label class="f">Picture window, landscape</label><div class="row">${['x', 'y', 'w', 'h'].map((k) => `<input type="number" min="0" max="100" data-win="l${k}" value="${(p.winL || { x: 0, y: 0, w: 100, h: 100 })[k]}" style="width:80px">`).join('')}</div>
+    <p class="hint">Leave at 0, 0, 100, 100 for a full-page picture. For a branded card frame (logos along the bottom), set the window to match the frame's clear area, for example 6, 5, 88, 75. The preview updates when you save.</p>
     <button class="btn" id="savep" style="margin-top:16px">Save print</button></div>
     <div class="card"><h2>Preview</h2><div class="preview-wrap row" style="justify-content:center;align-items:center"><canvas id="pv" style="max-width:220px"></canvas><canvas id="pvl" style="max-width:300px"></canvas></div></div></div>
     <div class="card"><h2>Animated video</h2>
@@ -153,7 +157,8 @@ function tabPrint(el) {
     }
   })();
   $('#mode', el).onchange = async () => { const m = val('mode'); await put({ print: { on: m === 'both' || m === 'print' }, video: { on: m === 'both' || m === 'video' } }); };
-  $('#savep', el).onclick = (e) => busy(e.target, async () => { await put({ print: { from: val('pfrom'), copies: +val('pcopies'), qr: chk('pqr'), inset: chk('pinset') } }); route(); });
+  $('#savep', el).onclick = (e) => busy(e.target, async () => { const wv = (pre) => Object.fromEntries(['x', 'y', 'w', 'h'].map((k) => [k, +$(`[data-win=${pre}${k}]`, el).value]));
+    await put({ print: { from: val('pfrom'), copies: +val('pcopies'), qr: chk('pqr'), inset: chk('pinset'), win: wv('p'), winL: wv('l') } }); route(); });
   $('#savev', el).onclick = (e) => busy(e.target, () => put({ video: { motion: val('vmotion'), resolution: val('vres') } }));
 }
 
