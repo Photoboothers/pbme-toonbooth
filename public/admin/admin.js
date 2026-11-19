@@ -13,7 +13,7 @@ window.addEventListener('tb-auth', renderLogin);
 document.getElementById('logout').onclick = async (e) => { e.preventDefault(); await api('/logout', { method: 'POST', allow401: true }); renderLogin(); };
 function renderLogin() {
   document.getElementById('nav').classList.add('hidden');
-  app.innerHTML = `<div class="card login"><h1>Sign in</h1><p class="muted">AI Photo Booth admin</p><form id="lf"><label class="f">Admin password</label><input type="password" id="pw" autofocus>
+  app.innerHTML = `<div class="card login"><h1>Sign in</h1><p class="muted">AI Create Booth admin</p><form id="lf"><label class="f">Admin password</label><input type="password" id="pw" autofocus>
     <p id="lerr" class="hint" style="color:var(--bad)"></p><button class="btn" style="width:100%;margin-top:10px">Sign in</button></form></div>`;
   $('#lf').onsubmit = async (e) => { e.preventDefault(); try { await api('/login', { method: 'POST', body: { password: $('#pw').value }, allow401: true }); route(); } catch (err) { $('#lerr').textContent = err.message; } };
 }
@@ -92,7 +92,7 @@ function tabLook(el) {
 function tabStyles(el) {
   const row = (s) => `<div class="card" data-style="${esc(s.id)}"><div class="row"><label class="switch"><input type="checkbox" data-k="on" ${s.on !== false ? 'checked' : ''}> On</label>
       <input type="text" data-k="name" value="${esc(s.name)}" style="width:220px">
-      <select data-k="kind" style="width:150px"><option value="toon" ${s.kind !== 'ai' ? 'selected' : ''}>Toon</option><option value="ai" ${s.kind === 'ai' ? 'selected' : ''}>AI photo</option></select>
+      <select data-k="kind" style="width:150px"><option value="ai" ${s.kind === 'ai' ? 'selected' : ''}>AI Create</option><option value="toon" ${s.kind !== 'ai' ? 'selected' : ''}>Toon Mode</option></select>
       <label class="switch" title="Gives each guest a random fun expression from the list below"><input type="checkbox" data-k="caricature" ${s.caricature ? 'checked' : ''}> Fun expressions</label>
       <label class="switch" title="Uses the event logo (Booth look tab)"><input type="checkbox" data-k="logo" ${s.logo ? 'checked' : ''}> Event logo on clothes</label><span class="grow"></span>
       <button class="btn ghost small" data-up-btn>Move up</button><button class="btn ghost small" data-down-btn>Move down</button><button class="btn danger small" data-rm>Remove</button></div>
@@ -102,7 +102,7 @@ function tabStyles(el) {
     <label class="f">The look (AI prompt for the picture)</label><textarea data-k="prompt" style="min-height:80px">${esc(s.prompt)}</textarea>
     <label class="f">How it moves in the video (leave empty to use the event's default movement)</label><textarea data-k="motion" style="min-height:60px">${esc(s.motion || '')}</textarea></div>`;
   el.innerHTML = `<div class="card"><div class="row"><label class="switch"><input type="checkbox" id="guestChoice" ${ev.guestChoice ? 'checked' : ''}> Guests pick their style on the booth</label><span class="grow"></span><button class="btn" id="lib">+ Add from the style library</button><button class="btn ghost" id="add">+ Blank style</button></div>
-    <p class="hint">Styles are either Toon or AI photo. When an event has both, guests choose Toons or AI photos first on the booth. When off, every guest gets the first style that is on. Upload a sample image for each style so guests can see it on the style button (one of your own test results works best). To change a theme, just edit the words, for example "swinging a golf club" to "serving a tennis ball".</p></div>
+    <p class="hint">Styles are either AI Create (realistic) or Toon Mode (cartoon and art). When an event has both, guests switch between AI Create and Toon Mode on the booth. When off, every guest gets the first style that is on. Upload a sample image for each style so guests can see it on the style button (one of your own test results works best). To change a theme, just edit the words, for example "swinging a golf club" to "serving a tennis ball".</p></div>
     <div id="styles">${ev.styles.map(row).join('')}</div>
     <div class="card" style="margin-top:18px"><h2>Fun expressions</h2><p class="hint">One per line. Styles with "Fun expressions" ticked give each guest one of these at random.</p><textarea id="expr">${esc(ev.expressions.join('\n'))}</textarea></div>
     <button class="btn" id="save">Save styles</button>`;
@@ -116,7 +116,7 @@ function tabStyles(el) {
   $('#add', el).onclick = async () => { await put({ guestChoice: chk('guestChoice'), styles: [...collect(), { name: 'New style', prompt: '', on: true }], expressions: lines(val('expr')) }); route(); };
   $('#lib', el).onclick = async () => {
     const lib = await api('/library'), have = new Set(ev.styles.map((s) => s.id)), groups = [...new Set(lib.map((s) => s.group))];
-    const m = modal(`<h2>Style library</h2><p class="hint">Tick the styles to add to this event. You can edit them after.</p>${[['toon', 'Toon styles'], ['ai', 'AI photo styles']].map(([k, title]) => `<h2 style="margin-top:20px">${title}</h2>` + groups.filter((g) => lib.some((s) => s.kind === k && s.group === g)).map((g) => `<h3 style="margin-top:14px">${esc(g)}</h3>${lib.filter((s) => s.group === g && s.kind === k).map((s) => `<label class="switch" style="display:flex;margin:6px 0;align-items:flex-start"><input type="checkbox" value="${s.id}" ${have.has(s.id) ? 'disabled checked' : ''}><span><b>${esc(s.name)}</b>${s.motion ? ' <span class="pill pink">Own animation</span>' : ''}<br><span class="muted">${esc(s.prompt.slice(0, 140))}…</span></span></label>`).join('')}`).join('')).join('')}
+    const m = modal(`<h2>Style library</h2><p class="hint">Tick the styles to add to this event. You can edit them after.</p>${[['ai', 'AI Create styles'], ['toon', 'Toon Mode styles']].map(([k, title]) => `<h2 style="margin-top:20px">${title}</h2>` + groups.filter((g) => lib.some((s) => s.kind === k && s.group === g)).map((g) => `<h3 style="margin-top:14px">${esc(g)}</h3>${lib.filter((s) => s.group === g && s.kind === k).map((s) => `<label class="switch" style="display:flex;margin:6px 0;align-items:flex-start"><input type="checkbox" value="${s.id}" ${have.has(s.id) ? 'disabled checked' : ''}><span><b>${esc(s.name)}</b>${s.motion ? ' <span class="pill pink">Own animation</span>' : ''}<br><span class="muted">${esc(s.prompt.slice(0, 140))}…</span></span></label>`).join('')}`).join('')).join('')}
       <div class="row" style="margin-top:14px"><button class="btn" id="addSel">Add selected</button><button class="btn ghost" id="cancel">Cancel</button></div>`);
     m.el.querySelector('#cancel').onclick = m.close;
     m.el.querySelector('#addSel').onclick = async () => {

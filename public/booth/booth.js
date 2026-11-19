@@ -29,7 +29,7 @@ async function loadEvent() {
   kind = ''; renderStyles();
   const v = ev.filesV || 0, p = ev.print || {};
   frames = { p: p.hasFrame ? await loadImg(`/api/files/frame/${ev.id}?v=${v}`) : null, l: p.hasFrameL ? await loadImg(`/api/files/framel/${ev.id}?v=${v}`) : null };
-  document.title = ev.name + ' · AI Photo Booth';
+  document.title = ev.name + ' · AI Create Booth';
 }
 
 let kind = '';

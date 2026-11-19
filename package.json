@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Photobooth-ME Caricature Booth: AI caricature still that prints, plus an animated video emailed to the guest",
+  "description": "Photobooth-ME AI Create Booth with Toon Mode",
   "dependencies": { "@netlify/blobs": "^8.1.0" },
   "engines": { "node": ">=18" }
 }

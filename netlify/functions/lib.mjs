@@ -265,14 +265,14 @@ export const DEFAULT_MOTION = 'Bring this caricature to life as a short, playful
 export function newEvent(id, name) {
   return {
     id, name: name || 'New event', created: Date.now(),
-    boothTitle: 'AI Photo Booth', tagline: 'Pick a style. Strike a pose.', startBtn: 'Start',
+    boothTitle: 'AI Create Booth', tagline: 'Pick a style. Strike a pose.', startBtn: 'Start',
     colors: { bg: '#121012', accent: '#ED2F5B', text: '#FFFFFF' },
     styles: DEFAULT_STYLES.map((s) => ({ ...s })), guestChoice: true, expressions: DEFAULT_EXPRESSIONS.slice(),
     allowGroup: true, countdown: 3, makingTitle: 'Magic happening', makingSub: 'Please wait, just a moment',
     video: { on: true, motion: DEFAULT_MOTION, aspect: '9:16', resolution: '720p' },
     print: { on: true, from: 'station', copies: 1, qr: true, inset: true, hasFrame: false, hasFrameL: false },
-    email: { enabled: true, atBooth: true, senderName: '', subject: 'Your AI photo booth video', heading: 'Your video',
-      message: 'Thanks for stopping by! Here is your video from the AI photo booth. Tap below to watch it and save it to your phone.', button: 'Watch my video',
+    email: { enabled: true, atBooth: true, senderName: '', subject: 'Your AI Create Booth video', heading: 'Your video',
+      message: 'Thanks for stopping by! Here is your video from the AI Create Booth. Tap below to watch it and save it to your phone.', button: 'Watch my video',
       consent: 'I agree to receive this email with my video.', marketing: false, marketingText: 'Keep me updated with news and offers from the event organiser.' },
     hasLogo: false, hasBg: false, resetSec: 25,
   };
@@ -353,7 +353,7 @@ export async function sendGuestEmail({ to, ev, m, origin }) {
   const r = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST', headers: { 'api-key': key, 'content-type': 'application/json', accept: 'application/json' },
     body: JSON.stringify({ sender: { name: em.senderName || ev.name || 'Photobooth-ME', email: from }, replyTo: { email: from }, to: [{ email: to }],
-      subject: em.subject || 'Your AI photo booth video', htmlContent: html, textContent: `${em.message || ''}\n\n${button}: ${link}` }),
+      subject: em.subject || 'Your AI Create Booth video', htmlContent: html, textContent: `${em.message || ''}\n\n${button}: ${link}` }),
   });
   if (!r.ok) throw Object.assign(new Error('Email service: ' + (await r.text()).slice(0, 300)), { status: 502 });
 }
