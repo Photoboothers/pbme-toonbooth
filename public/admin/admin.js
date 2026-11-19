@@ -95,7 +95,7 @@ function tabStyles(el) {
       <select data-k="kind" style="width:150px"><option value="toon" ${s.kind !== 'ai' ? 'selected' : ''}>Toon</option><option value="ai" ${s.kind === 'ai' ? 'selected' : ''}>AI photo</option></select>
       <label class="switch" title="Gives each guest a random fun expression from the list below"><input type="checkbox" data-k="caricature" ${s.caricature ? 'checked' : ''}> Fun expressions</label>
       <label class="switch" title="Uses the event logo (Booth look tab)"><input type="checkbox" data-k="logo" ${s.logo ? 'checked' : ''}> Event logo on clothes</label><span class="grow"></span>
-      <button class="btn ghost small" data-up-btn>Move up</button><button class="btn danger small" data-rm>Remove</button></div>
+      <button class="btn ghost small" data-up-btn>Move up</button><button class="btn ghost small" data-down-btn>Move down</button><button class="btn danger small" data-rm>Remove</button></div>
     <div class="row" style="margin-top:8px"><span class="pill ${s.hasSample ? 'ok' : ''}">${s.hasSample ? 'Sample image' : 'No sample image'}</span><label class="btn ghost small">Upload sample<input type="file" accept="image/*" hidden data-up="sample/${ev.id}/${esc(s.id)}"></label>
       ${s.hasSample ? `<button class="btn danger small" data-del="sample/${ev.id}/${esc(s.id)}">Remove sample</button>` : ''}</div>
     <div class="row" style="margin-top:8px"><label class="f" style="margin:0">Big word in the picture (optional, one short word such as a city)</label><input type="text" data-k="word" value="${esc(s.word || '')}" maxlength="20" style="width:200px"></div>
@@ -111,6 +111,7 @@ function tabStyles(el) {
     prompt: $('[data-k=prompt]', c).value, motion: $('[data-k=motion]', c).value, hasSample: (ev.styles.find((s) => s.id === c.dataset.style) || {}).hasSample }));
   const saveAll = () => put({ guestChoice: chk('guestChoice'), styles: collect(), expressions: lines(val('expr')) });
   $$('[data-rm]', el).forEach((b) => { b.onclick = () => { if (confirm('Remove this style from the event?')) b.closest('[data-style]').remove(); }; });
+  $$('[data-down-btn]', el).forEach((b) => { b.onclick = () => { const c = b.closest('[data-style]'); if (c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c); }; });
   $$('[data-up-btn]', el).forEach((b) => { b.onclick = () => { const c = b.closest('[data-style]'); if (c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling); }; });
   $('#add', el).onclick = async () => { await put({ guestChoice: chk('guestChoice'), styles: [...collect(), { name: 'New style', prompt: '', on: true }], expressions: lines(val('expr')) }); route(); };
   $('#lib', el).onclick = async () => {

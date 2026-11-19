@@ -19,9 +19,6 @@ export const DEFAULT_FROM = 'events@photobooth-me.com';
 // shape: portrait = 2:3 (prints full 4x6), landscape = 3:2 (prints turned on the 4x6). caricature: gets a random fun expression.
 // motion: how the animated video moves for this style (the event's default motion is used when empty).
 export const STYLE_LIBRARY = [
-  { id: 'golf', kind: 'toon', name: 'Golf swing', shape: 'portrait', caricature: false, group: 'Activity',
-    prompt: 'a black and white ink line-art caricature: a slightly big head on a full body, caught mid golf swing with the club raised high, wearing smart golf clothes, on a hand-drawn golf course with rolling greens, trees, fluffy clouds, a flag on the green, a golf bag and a ball on the tee, clean confident outlines with light hatching, like a hand-inked colouring-book drawing',
-    motion: 'The ink drawing comes alive: they finish a smooth golf swing, the ball flies off in a drawn arc towards the flag, they shade their eyes to watch, then cheer as it lands on the green. Keep the black and white hand-inked line-art style, the same character and course for the whole clip. The camera stays still. Golf club swish, ball thwack and soft cheer sound effects only, no words.' },
   { id: 'sketch', kind: 'toon', name: 'Instant sketch', shape: 'portrait', caricature: false, group: 'Classic',
     prompt: 'a realistic hand-drawn graphite pencil portrait on white drawing paper, true to life and not exaggerated, fine detailed shading on the face and hair, loose diagonal pencil hatching fading out into the background, looks drawn by a skilled portrait artist',
     motion: 'The pencil portrait gently comes to life: the person blinks, smiles warmly and turns their head slightly, while loose pencil strokes sketch themselves in around them. Everything stays a black and white pencil drawing on paper. The camera stays still. Soft pencil-scratching sound only.' },
@@ -242,6 +239,9 @@ export const STYLE_LIBRARY = [
   { id: 'rain', kind: 'toon', name: 'Dancing in the rain', shape: 'portrait', caricature: false, group: 'Art',
     prompt: 'a romantic impressionist oil painting with visible brush strokes: them dancing together joyfully on a rainy cobbled street at dusk (or one person twirling happily on their own), dressed in elegant vintage evening clothes (same coverage as their own clothes), glowing old street lamps, rain sparkling, warm golden light reflecting on the wet cobbles, passers-by with umbrellas softly painted behind',
     motion: 'They twirl and dance in the rain on the shining cobbles, laughing, as raindrops sparkle in the lamplight and the umbrellas drift past. Keep the impressionist oil-painting look with visible brush strokes. The camera slowly circles. Gentle rain and a romantic waltz, no words.' },
+  { id: 'golf', kind: 'toon', name: 'Golf swing', shape: 'portrait', caricature: false, group: 'Activity',
+    prompt: 'a black and white ink line-art caricature: a slightly big head on a full body, caught mid golf swing with the club raised high, wearing smart golf clothes, on a hand-drawn golf course with rolling greens, trees, fluffy clouds, a flag on the green, a golf bag and a ball on the tee, clean confident outlines with light hatching, like a hand-inked colouring-book drawing',
+    motion: 'The ink drawing comes alive: they finish a smooth golf swing, the ball flies off in a drawn arc towards the flag, they shade their eyes to watch, then cheer as it lands on the green. Keep the black and white hand-inked line-art style, the same character and course for the whole clip. The camera stays still. Golf club swish, ball thwack and soft cheer sound effects only, no words.' },
   { id: 'water', kind: 'toon', name: 'Watercolour', shape: 'portrait', caricature: false, group: 'Watercolour',
     prompt: 'a soft, realistic watercolour portrait on textured white watercolour paper: a true likeness with gentle detailed washes on the face, loose painterly clothes, and a soft green, yellow and blue watercolour splash behind them with a few drips and speckles fading into the white paper' },
   { id: 'oil', kind: 'toon', name: 'Royal oil painting', shape: 'portrait', caricature: false, group: 'Art',
@@ -251,7 +251,7 @@ export const STYLE_LIBRARY = [
     prompt: 'a retro 1980s synthwave illustration: glowing neon pink and cyan rim lighting, airbrushed style, sunset grid landscape and palm silhouettes behind, cool sunglasses pushed up on the head' },
 ];
 const pick = (...ids) => ids.map((id) => ({ ...STYLE_LIBRARY.find((s) => s.id === id), on: true }));
-export const DEFAULT_STYLES = pick('elf', 'golf', 'laugh', 'redcarpet', 'pixel');
+export const DEFAULT_STYLES = pick('elf', 'laugh', 'redcarpet', 'minime', 'pixel');
 export const DEFAULT_EXPRESSIONS = [
   'laughing out loud, eyes squeezed shut with joy',
   'amazed, mouth wide open in a big "wow"',
