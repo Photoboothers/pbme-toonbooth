@@ -6,10 +6,12 @@ export default async (req) => {
   if (!id || k !== jobKey(id)) return;
   try {
     const m = await shotMeta(id); if (!m || m.toon !== 'ready') return;
-    const ev = await EV().get(m.eventId, { type: 'json' }); const v = ev.video || {};
+    const ev = await EV().get(m.eventId, { type: 'json' }); const style = (ev.styles || []).find((x) => x.id === m.style) || {};
+    // each style can have its own movement (e.g. the pixel hero catching coins); the video shape follows the picture
+    const v = { ...(ev.video || {}), aspect: m.shape === 'landscape' ? '16:9' : '9:16' };
     await patchShot(id, (cur) => { cur.video = 'making'; cur.videoStart = Date.now(); return cur; });
     const toon = await FILES().get(`toon/${id}`, { type: 'arrayBuffer' });
-    const b64 = Buffer.from(toon).toString('base64'), prompt = (v.motion || '').trim() || DEFAULT_MOTION;
+    const b64 = Buffer.from(toon).toString('base64'), prompt = (style.motion || '').trim() || (v.motion || '').trim() || DEFAULT_MOTION;
     let out;
     try { out = await geminiVideo(b64, m.toonType, prompt, v); } catch { out = await geminiVideo(b64, m.toonType, prompt, v); }   // one automatic retry
     await FILES().set(`video/${id}`, out.buf, { metadata: { type: out.type } });

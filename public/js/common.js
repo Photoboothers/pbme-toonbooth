@@ -36,17 +36,27 @@ export async function ensureLogin(title = 'Sign in') {
 export async function loadImg(url) { try { const r = await fetch(url, { cache: 'no-store', credentials: 'same-origin' }); if (!r.ok) return null; return await createImageBitmap(await r.blob()); } catch { return null; } }
 export const toJpeg = (c, q = 0.92) => new Promise((r) => c.toBlob(r, 'image/jpeg', q));
 
-// ---------- the 4x6 print (1200 x 1800, 300 dpi) ----------
+// ---------- the 4x6 print (1200 x 1800 at 300 dpi; landscape styles are laid out 1800 x 1200, then turned for the printer) ----------
 export const PW = 1200, PH = 1800;
 function cover(g, img, w, h) { const s = Math.max(w / img.width, h / img.height), dw = img.width * s, dh = img.height * s; g.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh); }
-// toon = the caricature, frame = optional transparent PNG overlay (1200x1800), qrUrl = guest page link (optional)
-export function composePrint(ev, toon, frame, qrUrl, w = PW, h = PH) {
-  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'), k = w / PW;
+// toon = the caricature, frames = { p, l } transparent PNG overlays, qrUrl = guest page link, photo = the guest's original photo (small polaroid)
+export function composePrint(ev, toon, frames, qrUrl, o = {}) {
+  const land = o.landscape ?? !!(toon && toon.width > toon.height);
+  const w = o.w || (land ? PH : PW), h = o.h || (land ? PW : PH), k = Math.min(w, h) / PW, p = ev.print || {};
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
   g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h);
   if (toon) cover(g, toon, w, h);
-  else { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#e8e3e6'); gr.addColorStop(1, '#cfc7cc'); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.fillStyle = '#8a8288'; g.font = `700 ${60 * k}px Montserrat, Arial`; g.textAlign = 'center'; g.fillText('Caricature here', w / 2, h / 2); }
-  if (frame) g.drawImage(frame, 0, 0, w, h);
-  if (qrUrl && ev.print && ev.print.qr) {
+  else { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#e8e3e6'); gr.addColorStop(1, '#cfc7cc'); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.fillStyle = '#8a8288'; g.font = `700 ${60 * k}px Montserrat, Arial`; g.textAlign = 'center'; g.fillText('Your picture here', w / 2, h / 2); }
+  const fr = frames && (land ? frames.l : frames.p); if (fr) g.drawImage(fr, 0, 0, w, h);
+  if (p.inset && (o.photo || !toon)) {   // the original photo as a little tilted polaroid, bottom left
+    const pw = 270 * k, ph = pw * 1.5, b = 14 * k, x = 50 * k, y = h - ph - b * 2 - 46 * k - 60 * k;
+    g.save(); g.translate(x + pw / 2, y + ph / 2); g.rotate(-5 * Math.PI / 180); g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 24 * k; g.shadowOffsetY = 8 * k;
+    g.fillStyle = '#fff'; g.fillRect(-pw / 2 - b, -ph / 2 - b, pw + b * 2, ph + b * 2 + 46 * k); g.shadowColor = 'transparent';
+    if (o.photo) { g.beginPath(); g.rect(-pw / 2, -ph / 2, pw, ph); g.clip(); const ph2 = o.photo, s2 = Math.max(pw / ph2.width, ph / ph2.height); g.drawImage(ph2, -ph2.width * s2 / 2, -ph2.height * s2 / 2, ph2.width * s2, ph2.height * s2); }
+    else { g.fillStyle = '#d9d3d7'; g.fillRect(-pw / 2, -ph / 2, pw, ph); }
+    g.restore();
+  }
+  if (qrUrl && p.qr) {
     const box = 250 * k, pad = 22 * k, x = w - box - 44 * k, y = h - box - 70 * k;
     g.fillStyle = '#ffffff'; g.beginPath(); g.roundRect(x, y, box, box + 44 * k, 18 * k); g.fill();
     drawQR(g, qrUrl, x + pad, y + pad, box - pad * 2);
@@ -54,6 +64,13 @@ export function composePrint(ev, toon, frame, qrUrl, w = PW, h = PH) {
   }
   return c;
 }
+// the printer always gets a portrait 1200 x 1800 page: landscape layouts are turned a quarter
+export function forPrinter(c) {
+  if (c.width <= c.height) return c;
+  const r = document.createElement('canvas'); r.width = c.height; r.height = c.width; const g = r.getContext('2d');
+  g.translate(r.width, 0); g.rotate(Math.PI / 2); g.drawImage(c, 0, 0); return r;
+}
+export function thumbOf(img, long = 720) { const s = long / Math.max(img.width, img.height), c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); return c; }
 
 // ---------- printing (Chrome started with --kiosk-printing prints straight to the default printer) ----------
 let printChain = Promise.resolve();

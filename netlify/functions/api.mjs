@@ -1,6 +1,6 @@
 // Photobooth-ME Caricature Booth - API (one function, routed by path)
 import { timingSafeEqual, randomBytes } from 'node:crypto';
-import { EV, SET, FILES, SHOTS, SIDX, sign, jobKey, validId, newEvent, shotMeta, patchShot, flushEmails, videoSettled, DEFAULT_FROM, IMAGE_MODEL, VIDEO_MODEL } from './lib.mjs';
+import { EV, SET, FILES, SHOTS, SIDX, sign, jobKey, validId, newEvent, STYLE_LIBRARY, shotMeta, patchShot, flushEmails, videoSettled, DEFAULT_FROM, IMAGE_MODEL, VIDEO_MODEL } from './lib.mjs';
 
 export const config = { path: '/api/*' };
 
@@ -17,7 +17,7 @@ function isAdmin(req) {
 const sameText = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && timingSafeEqual(x, y); };
 async function body(req) { try { return await req.json(); } catch { return {}; } }
 const okEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(e || ''));
-const FILE_KEY = /^((logo|bg|frame)\/[a-z0-9]+|sample\/[a-z0-9]+\/[a-z0-9]{2,12})$/;
+const FILE_KEY = /^((logo|bg|frame|framel)\/[a-z0-9]+|sample\/[a-z0-9]+\/[a-z0-9]{2,12})$/;
 const str = (v, n) => String(v ?? '').slice(0, n);
 // streamed in pieces so phones get exactly the byte range they ask for (iPhones need ranges to play video)
 const streamOf = (buf) => new ReadableStream({ start(ctrl) { for (let i = 0; i < buf.length; i += 256 * 1024) ctrl.enqueue(new Uint8Array(buf.buffer, buf.byteOffset + i, Math.min(256 * 1024, buf.length - i))); ctrl.close(); } });
@@ -39,13 +39,19 @@ function cleanEvent(ev, b) {
   if (b.countdown !== undefined) ev.countdown = Math.max(0, Math.min(10, Math.round(+b.countdown || 0)));
   if (b.resetSec !== undefined) ev.resetSec = Math.max(10, Math.min(120, Math.round(+b.resetSec || 25)));
   if (b.colors && typeof b.colors === 'object') for (const k of ['bg', 'accent', 'text']) if (/^#[0-9a-f]{6}$/i.test(b.colors[k] || '')) ev.colors[k] = b.colors[k];
-  if (Array.isArray(b.styles)) ev.styles = b.styles.slice(0, 6).map((s, i) => ({ id: /^[a-z0-9]{2,12}$/.test(s.id || '') ? s.id : 's' + rid(5), name: str(s.name, 30) || 'Style ' + (i + 1), prompt: str(s.prompt, 900), on: s.on !== false, hasSample: !!s.hasSample }));
+  if (Array.isArray(b.styles)) {
+    const seen = new Set();
+    ev.styles = b.styles.slice(0, 24).map((s, i) => {
+      let id = /^[a-z0-9]{2,12}$/.test(s.id || '') ? s.id : 's' + rid(5); if (seen.has(id)) id = (id.slice(0, 6) + rid(5)); seen.add(id);
+      return { id, name: str(s.name, 30) || 'Style ' + (i + 1), prompt: str(s.prompt, 1200), motion: str(s.motion, 1500), shape: s.shape === 'landscape' ? 'landscape' : 'portrait',
+        caricature: !!s.caricature, on: s.on !== false, hasSample: !!s.hasSample };
+    });
+  }
   if (Array.isArray(b.expressions)) ev.expressions = b.expressions.map((x) => str(x, 200).trim()).filter(Boolean).slice(0, 20);
   if (b.video && typeof b.video === 'object') {
     const v = b.video; ev.video = { ...ev.video };
     if (v.on !== undefined) ev.video.on = !!v.on;
     if (v.motion !== undefined) ev.video.motion = str(v.motion, 1500);
-    if (['9:16', '16:9'].includes(v.aspect)) ev.video.aspect = v.aspect;
     if (['360p', '720p', '1080p'].includes(v.resolution)) ev.video.resolution = v.resolution;
   }
   if (b.print && typeof b.print === 'object') {
@@ -54,6 +60,7 @@ function cleanEvent(ev, b) {
     if (['station', 'booth'].includes(p.from)) ev.print.from = p.from;
     if (p.copies !== undefined) ev.print.copies = Math.max(1, Math.min(5, Math.round(+p.copies || 1)));
     if (p.qr !== undefined) ev.print.qr = !!p.qr;
+    if (p.inset !== undefined) ev.print.inset = !!p.inset;
   }
   if (b.email && typeof b.email === 'object') {
     const e = b.email; ev.email = { ...ev.email };
@@ -134,6 +141,7 @@ export default async (req) => {
     // ---------- signed in (admin, booth, print station) ----------
     if (!isAdmin(req)) return err('Not signed in', 401);
 
+    if (path === '/library' && method === 'GET') return json(STYLE_LIBRARY);
     if (path === '/settings' && method === 'GET') {
       const s = (await SET().get('global', { type: 'json' })) || {};
       return json({ emailFrom: process.env.EMAIL_FROM || s.emailFrom || DEFAULT_FROM, emailReady: !!process.env.EMAIL_API_KEY, geminiReady: !!process.env.GEMINI_API_KEY, imageModel: IMAGE_MODEL(), videoModel: VIDEO_MODEL() });
@@ -145,7 +153,7 @@ export default async (req) => {
       const [kind, id, styleId] = key.split('/'); const ev = await EV().get(id, { type: 'json' });
       if (ev) {
         if (kind === 'sample') { const s = (ev.styles || []).find((x) => x.id === styleId); if (s) s.hasSample = method === 'PUT'; }
-        else if (kind === 'frame') ev.print = { ...ev.print, hasFrame: method === 'PUT' };
+        else if (kind === 'frame' || kind === 'framel') ev.print = { ...ev.print, [kind === 'frame' ? 'hasFrame' : 'hasFrameL']: method === 'PUT' };
         else ev[kind === 'logo' ? 'hasLogo' : 'hasBg'] = method === 'PUT';
         ev.filesV = Date.now(); await EV().setJSON(id, ev);
       }
@@ -165,7 +173,7 @@ export default async (req) => {
       if (seg.length === 2 && method === 'PUT') { cleanEvent(ev, await body(req)); await EV().setJSON(id, ev); return json(ev); }
       if (seg.length === 2 && method === 'DELETE') {
         for (const m of await listShots(id)) await deleteShot(id, m.id);
-        for (const k of ['logo', 'bg', 'frame']) await FILES().delete(`${k}/${id}`);
+        for (const k of ['logo', 'bg', 'frame', 'framel']) await FILES().delete(`${k}/${id}`);
         for (const s of ev.styles || []) await FILES().delete(`sample/${id}/${s.id}`);
         await EV().delete(id); return json({ ok: true });
       }

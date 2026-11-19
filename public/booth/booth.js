@@ -1,10 +1,10 @@
-import { api, toast, ensureLogin, loadImg, composePrint, toJpeg, printBlob, esc } from '/js/common.js';
+import { api, toast, ensureLogin, loadImg, composePrint, forPrinter, thumbOf, toJpeg, printBlob, esc } from '/js/common.js';
 import { drawQR } from '/js/qr.js';
 
 const $ = (s) => document.querySelector(s);
 let EVENT = new URLSearchParams(location.search).get('event') || '';
 try { if (EVENT) localStorage.setItem('tb-booth-event', EVENT); else EVENT = localStorage.getItem('tb-booth-event') || ''; } catch { /* private mode */ }
-let ev = null, frame = null, stream = null, photo = null, style = '', cur = null, wakeLock = null, idle = null, run = 0;
+let ev = null, frames = {}, stream = null, photo = null, style = '', cur = null, wakeLock = null, idle = null, run = 0;
 
 const show = (id) => { document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('hidden', s.id !== id)); armIdle(id); };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -28,7 +28,8 @@ async function loadEvent() {
   $('#title').textContent = ev.boothTitle || ''; $('#tagline').textContent = ev.tagline || ''; $('#go').textContent = ev.startBtn || 'Start';
   $('#styleGrid').innerHTML = onStyles().map((s) => `<button class="style-card" data-s="${esc(s.id)}">${s.hasSample ? `<img src="/api/files/sample/${ev.id}/${esc(s.id)}?v=${ev.filesV || 0}" alt="">` : '<div class="ph"><img src="/img/pencil.png" alt=""></div>'}<span>${esc(s.name)}</span></button>`).join('');
   $('#styleGrid').querySelectorAll('[data-s]').forEach((el) => { el.onclick = () => { style = el.dataset.s; openCamera(); }; });
-  frame = ev.print && ev.print.hasFrame ? await loadImg(`/api/files/frame/${ev.id}?v=${ev.filesV || 0}`) : null;
+  const v = ev.filesV || 0, p = ev.print || {};
+  frames = { p: p.hasFrame ? await loadImg(`/api/files/frame/${ev.id}?v=${v}`) : null, l: p.hasFrameL ? await loadImg(`/api/files/framel/${ev.id}?v=${v}`) : null };
   document.title = ev.name + ' · Caricature Booth';
 }
 
@@ -128,10 +129,10 @@ async function finish(m) {
   show('result');
   // print + thumbnail (in the background while the guest looks at their caricature)
   try {
-    const th = composePrint({ print: { qr: false } }, toon, null, '', 480, 720);
-    await api(`/shots/${m.id}/thumb`, { method: 'PUT', body: await toJpeg(th, 0.82) });
+    await api(`/shots/${m.id}/thumb`, { method: 'PUT', body: await toJpeg(thumbOf(toon), 0.82) });
     if (printing) {
-      const blob = await toJpeg(composePrint(ev, toon, frame, link), 0.93);
+      const ph = ev.print.inset && photo ? await createImageBitmap(photo).catch(() => null) : null;
+      const blob = await toJpeg(forPrinter(composePrint(ev, toon, frames, link, { photo: ph })), 0.93);
       await api(`/shots/${m.id}/print`, { method: 'PUT', body: blob });
       if (ev.print.from === 'booth') {
         for (let k = 0; k < (ev.print.copies || 1); k++) { await printBlob(blob, $('#printframe')); api(`/shots/${m.id}`, { method: 'PATCH', body: { printed: true, printedBy: 'booth' } }).catch(() => {}); }

@@ -8,6 +8,12 @@ Guests take a photo and get an AI caricature. The still prints at 4x6 straight a
 4. The guest types their email on the booth screen (or scans the QR code).
 5. In the background, Gemini Omni Flash turns the caricature into a short animated video. As soon as it is ready the guest is emailed a link to their page, where they can watch and save the video and the picture.
 
+## Styles
+
+Admin → Styles → **Add from the style library** has 26 ready styles (golf swing, big laugh cartoon, red carpet stars, pixel game hero, elfie selfie, instant sketch, collectible figurine, watercolour and more). Each style has its own look prompt, its own animation (the pixel hero runs and catches coins, the laughing friends look at each other and crack up), a shape (portrait or landscape) and an optional sample image for the style button. Everything is editable per event.
+
+Admin → Print & video → **What guests get**: print + animated video, print only, video only, or digital only.
+
 **Golden rule:** the AI never writes any words. Every word on the print, the screens and the email comes from the app.
 
 If the video can't be made, the guest is still emailed, with their caricature instead, and staff can retry the video from the Gallery.

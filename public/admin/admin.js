@@ -1,4 +1,4 @@
-import { api, esc, toast, loadImg, composePrint } from '/js/common.js';
+import { api, esc, toast, modal, loadImg, composePrint } from '/js/common.js';
 
 const app = document.getElementById('app');
 const $ = (s, r = app) => r.querySelector(s), $$ = (s, r = app) => Array.from(r.querySelectorAll(s));
@@ -91,43 +91,70 @@ function tabLook(el) {
 
 function tabStyles(el) {
   const row = (s) => `<div class="card" data-style="${esc(s.id)}"><div class="row"><label class="switch"><input type="checkbox" data-k="on" ${s.on !== false ? 'checked' : ''}> On</label>
-      <input type="text" data-k="name" value="${esc(s.name)}" style="width:220px"><span class="grow"></span>
-      <span class="pill ${s.hasSample ? 'ok' : ''}">${s.hasSample ? 'Sample image' : 'No sample'}</span><label class="btn ghost small">Upload sample<input type="file" accept="image/*" hidden data-up="sample/${ev.id}/${esc(s.id)}"></label>
-      ${s.hasSample ? `<button class="btn danger small" data-del="sample/${ev.id}/${esc(s.id)}">Remove sample</button>` : ''}<button class="btn danger small" data-rm>Delete style</button></div>
-    <label class="f">What the style looks like (the AI prompt)</label><textarea data-k="prompt" style="min-height:80px">${esc(s.prompt)}</textarea></div>`;
-  el.innerHTML = `<div class="card"><label class="switch"><input type="checkbox" id="guestChoice" ${ev.guestChoice ? 'checked' : ''}> Guests pick their style on the booth</label>
-    <p class="hint">When off, every guest gets the first style that is switched on. The sample image is shown on the style button (portrait 2:3 works best).</p></div>
-    <div id="styles">${ev.styles.map(row).join('')}</div><button class="btn ghost" id="add">+ Add style</button>
-    <div class="card" style="margin-top:18px"><h2>Expressions</h2><p class="hint">One per line. Each guest gets one at random, which keeps the results fun and varied.</p><textarea id="expr">${esc(ev.expressions.join('\n'))}</textarea></div>
+      <input type="text" data-k="name" value="${esc(s.name)}" style="width:220px">
+      <select data-k="shape" style="width:150px"><option value="portrait" ${s.shape !== 'landscape' ? 'selected' : ''}>Portrait</option><option value="landscape" ${s.shape === 'landscape' ? 'selected' : ''}>Landscape</option></select>
+      <label class="switch" title="Gives each guest a random fun expression from the list below"><input type="checkbox" data-k="caricature" ${s.caricature ? 'checked' : ''}> Fun expressions</label><span class="grow"></span>
+      <button class="btn ghost small" data-up-btn>Move up</button><button class="btn danger small" data-rm>Remove</button></div>
+    <div class="row" style="margin-top:8px"><span class="pill ${s.hasSample ? 'ok' : ''}">${s.hasSample ? 'Sample image' : 'No sample image'}</span><label class="btn ghost small">Upload sample<input type="file" accept="image/*" hidden data-up="sample/${ev.id}/${esc(s.id)}"></label>
+      ${s.hasSample ? `<button class="btn danger small" data-del="sample/${ev.id}/${esc(s.id)}">Remove sample</button>` : ''}</div>
+    <label class="f">The look (AI prompt for the picture)</label><textarea data-k="prompt" style="min-height:80px">${esc(s.prompt)}</textarea>
+    <label class="f">How it moves in the video (leave empty to use the event's default movement)</label><textarea data-k="motion" style="min-height:60px">${esc(s.motion || '')}</textarea></div>`;
+  el.innerHTML = `<div class="card"><div class="row"><label class="switch"><input type="checkbox" id="guestChoice" ${ev.guestChoice ? 'checked' : ''}> Guests pick their style on the booth</label><span class="grow"></span><button class="btn" id="lib">+ Add from the style library</button><button class="btn ghost" id="add">+ Blank style</button></div>
+    <p class="hint">When off, every guest gets the first style that is on. Upload a sample image for each style so guests can see it on the style button (one of your own test results works best). To change a theme, just edit the words, for example "swinging a golf club" to "serving a tennis ball".</p></div>
+    <div id="styles">${ev.styles.map(row).join('')}</div>
+    <div class="card" style="margin-top:18px"><h2>Fun expressions</h2><p class="hint">One per line. Styles with "Fun expressions" ticked give each guest one of these at random.</p><textarea id="expr">${esc(ev.expressions.join('\n'))}</textarea></div>
     <button class="btn" id="save">Save styles</button>`;
   wireFiles(el);
-  const collect = () => $$('[data-style]', el).map((c) => ({ id: c.dataset.style, on: $('[data-k=on]', c).checked, name: $('[data-k=name]', c).value, prompt: $('[data-k=prompt]', c).value, hasSample: (ev.styles.find((s) => s.id === c.dataset.style) || {}).hasSample }));
-  $$('[data-rm]', el).forEach((b) => { b.onclick = () => { if (confirm('Delete this style?')) b.closest('[data-style]').remove(); }; });
-  $('#add', el).onclick = async () => { await put({ styles: [...collect(), { name: 'New style', prompt: '', on: true }] }); route(); };
-  $('#save', el).onclick = (e) => busy(e.target, async () => { await put({ guestChoice: chk('guestChoice'), styles: collect(), expressions: lines(val('expr')) }); route(); });
+  const collect = () => $$('[data-style]', el).map((c) => ({ id: c.dataset.style, on: $('[data-k=on]', c).checked, name: $('[data-k=name]', c).value, shape: $('[data-k=shape]', c).value, caricature: $('[data-k=caricature]', c).checked,
+    prompt: $('[data-k=prompt]', c).value, motion: $('[data-k=motion]', c).value, hasSample: (ev.styles.find((s) => s.id === c.dataset.style) || {}).hasSample }));
+  const saveAll = () => put({ guestChoice: chk('guestChoice'), styles: collect(), expressions: lines(val('expr')) });
+  $$('[data-rm]', el).forEach((b) => { b.onclick = () => { if (confirm('Remove this style from the event?')) b.closest('[data-style]').remove(); }; });
+  $$('[data-up-btn]', el).forEach((b) => { b.onclick = () => { const c = b.closest('[data-style]'); if (c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling); }; });
+  $('#add', el).onclick = async () => { await put({ guestChoice: chk('guestChoice'), styles: [...collect(), { name: 'New style', prompt: '', on: true }], expressions: lines(val('expr')) }); route(); };
+  $('#lib', el).onclick = async () => {
+    const lib = await api('/library'), have = new Set(ev.styles.map((s) => s.id)), groups = [...new Set(lib.map((s) => s.group))];
+    const m = modal(`<h2>Style library</h2><p class="hint">Tick the styles to add to this event. You can edit them after.</p>${groups.map((g) => `<h3 style="margin-top:14px">${esc(g)}</h3>${lib.filter((s) => s.group === g).map((s) => `<label class="switch" style="display:flex;margin:6px 0;align-items:flex-start"><input type="checkbox" value="${s.id}" ${have.has(s.id) ? 'disabled checked' : ''}><span><b>${esc(s.name)}</b>${s.shape === 'landscape' ? ' <span class="pill">Landscape</span>' : ''}${s.motion ? ' <span class="pill pink">Own animation</span>' : ''}<br><span class="muted">${esc(s.prompt.slice(0, 140))}…</span></span></label>`).join('')}`).join('')}
+      <div class="row" style="margin-top:14px"><button class="btn" id="addSel">Add selected</button><button class="btn ghost" id="cancel">Cancel</button></div>`);
+    m.el.querySelector('#cancel').onclick = m.close;
+    m.el.querySelector('#addSel').onclick = async () => {
+      const pickIds = [...m.el.querySelectorAll('input:checked:not([disabled])')].map((i) => i.value);
+      await put({ guestChoice: chk('guestChoice'), styles: [...collect(), ...lib.filter((s) => pickIds.includes(s.id)).map((s) => ({ ...s, on: true }))], expressions: lines(val('expr')) }); m.close(); route();
+    };
+  };
+  $('#save', el).onclick = (e) => busy(e.target, async () => { await saveAll(); route(); });
 }
 
 function tabPrint(el) {
   const p = ev.print, v = ev.video;
-  el.innerHTML = `<div class="grid2"><div class="card"><h2>4x6 print</h2>
-    <label class="switch"><input type="checkbox" id="pon" ${p.on ? 'checked' : ''}> Print a still for every guest</label>
+  el.innerHTML = `<div class="card"><h2>What guests get</h2><select id="mode" style="max-width:520px">
+      <option value="both" ${p.on && v.on ? 'selected' : ''}>Print + animated video by email</option><option value="print" ${p.on && !v.on ? 'selected' : ''}>Print only (instant, no video)</option>
+      <option value="video" ${!p.on && v.on ? 'selected' : ''}>Animated video only (no print)</option><option value="digital" ${!p.on && !v.on ? 'selected' : ''}>Digital picture only (QR / email, no print)</option></select>
+    <p class="hint">Print only is the fastest and cheapest. The animated video costs more per guest, so it suits premium packages.</p></div>
+    <div class="grid2"><div class="card"><h2>4x6 print</h2>
     <label class="f">Print from</label><select id="pfrom"><option value="station" ${p.from !== 'booth' ? 'selected' : ''}>A separate print station (Chrome with kiosk printing)</option><option value="booth" ${p.from === 'booth' ? 'selected' : ''}>The booth screen itself (booth Chrome in kiosk printing)</option></select>
     <label class="f">Copies per guest</label><input type="number" id="pcopies" min="1" max="5" value="${p.copies}" style="width:90px">
-    <label class="switch" style="margin-top:12px"><input type="checkbox" id="pqr" ${p.qr ? 'checked' : ''}> Small QR code on the print (bottom right) that opens the guest's video</label>
-    ${fileRow('Frame overlay', 'frame/' + ev.id, p.hasFrame, 'Transparent PNG, 1200 x 1800 px (4x6 at 300 dpi). Laid over the caricature. Leave the bottom right corner clear if the QR code is on.')}
+    <label class="switch" style="margin-top:12px"><input type="checkbox" id="pinset" ${p.inset ? 'checked' : ''}> Show the guest's original photo as a small polaroid (bottom left)</label>
+    <label class="switch" style="margin-top:8px"><input type="checkbox" id="pqr" ${p.qr ? 'checked' : ''}> Small QR code (bottom right) that opens the guest's page</label>
+    ${fileRow('Frame (portrait)', 'frame/' + ev.id, p.hasFrame, 'Transparent PNG, 1200 x 1800 px, laid over portrait styles.')}
+    ${fileRow('Frame (landscape)', 'framel/' + ev.id, p.hasFrameL, 'Transparent PNG, 1800 x 1200 px, laid over landscape styles (such as the pixel game). They print turned on the same 4x6 paper.')}
     <button class="btn" id="savep" style="margin-top:16px">Save print</button></div>
-    <div class="card"><h2>Preview</h2><div class="preview-wrap"><canvas id="pv"></canvas></div></div></div>
+    <div class="card"><h2>Preview</h2><div class="preview-wrap row" style="justify-content:center;align-items:center"><canvas id="pv" style="max-width:220px"></canvas><canvas id="pvl" style="max-width:300px"></canvas></div></div></div>
     <div class="card"><h2>Animated video</h2>
-    <label class="switch"><input type="checkbox" id="von" ${v.on ? 'checked' : ''}> Make an animated video of each caricature and email it</label>
-    <label class="f">How it moves (the AI prompt)</label><textarea id="vmotion">${esc(v.motion)}</textarea>
-    <div class="row"><label class="f">Shape</label><select id="vaspect" style="width:200px"><option value="9:16" ${v.aspect !== '16:9' ? 'selected' : ''}>Portrait 9:16</option><option value="16:9" ${v.aspect === '16:9' ? 'selected' : ''}>Landscape 16:9</option></select>
-      <label class="f">Quality</label><select id="vres" style="width:200px">${['360p', '720p', '1080p'].map((r) => `<option ${v.resolution === r ? 'selected' : ''}>${r}</option>`).join('')}</select></div>
-    <p class="hint">720p is the best balance of speed, cost and quality for phones. Each video costs more than a still, so switch this off for print-only events.</p>
+    <label class="f">Default movement (used by styles without their own)</label><textarea id="vmotion">${esc(v.motion)}</textarea>
+    <label class="f">Quality</label><select id="vres" style="width:200px">${['360p', '720p', '1080p'].map((r) => `<option ${v.resolution === r ? 'selected' : ''}>${r}</option>`).join('')}</select>
+    <p class="hint">Portrait styles make an upright phone video; landscape styles make a widescreen one. 720p is the best balance of speed, cost and quality.</p>
     <button class="btn" id="savev" style="margin-top:12px">Save video</button></div>`;
   wireFiles(el);
-  (async () => { const fr = p.hasFrame ? await loadImg(`/api/files/frame/${ev.id}?v=${ev.filesV || 0}`) : null; const c = composePrint({ ...ev, print: { ...p, qr: chk('pqr') } }, null, fr, 'https://example.com/v/preview', 400, 600); const pv = $('#pv', el); pv.width = 400; pv.height = 600; pv.getContext('2d').drawImage(c, 0, 0); })();
-  $('#savep', el).onclick = (e) => busy(e.target, async () => { await put({ print: { on: chk('pon'), from: val('pfrom'), copies: +val('pcopies'), qr: chk('pqr') } }); route(); });
-  $('#savev', el).onclick = (e) => busy(e.target, () => put({ video: { on: chk('von'), motion: val('vmotion'), aspect: val('vaspect'), resolution: val('vres') } }));
+  (async () => {
+    const vv = ev.filesV || 0, frames = { p: p.hasFrame ? await loadImg(`/api/files/frame/${ev.id}?v=${vv}`) : null, l: p.hasFrameL ? await loadImg(`/api/files/framel/${ev.id}?v=${vv}`) : null };
+    for (const [id, land] of [['pv', false], ['pvl', true]]) {
+      const c = composePrint(ev, null, frames, 'https://example.com/v/preview', { landscape: land, w: land ? 600 : 400, h: land ? 400 : 600 }), pv = $('#' + id, el);
+      pv.width = c.width; pv.height = c.height; pv.getContext('2d').drawImage(c, 0, 0);
+    }
+  })();
+  $('#mode', el).onchange = async () => { const m = val('mode'); await put({ print: { on: m === 'both' || m === 'print' }, video: { on: m === 'both' || m === 'video' } }); };
+  $('#savep', el).onclick = (e) => busy(e.target, async () => { await put({ print: { from: val('pfrom'), copies: +val('pcopies'), qr: chk('pqr'), inset: chk('pinset') } }); route(); });
+  $('#savev', el).onclick = (e) => busy(e.target, () => put({ video: { motion: val('vmotion'), resolution: val('vres') } }));
 }
 
 function tabEmail(el) {
