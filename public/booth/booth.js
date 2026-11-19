@@ -28,6 +28,7 @@ async function loadEvent() {
   b.setProperty('--bg', c.bg); b.setProperty('--accent', c.accent); b.setProperty('--text', c.text);
   b.backgroundImage = ev.hasBg ? `url(/api/files/bg/${ev.id}?v=${ev.filesV || 0})` : '';
   $('#logo').classList.toggle('hidden', !ev.hasLogo); if (ev.hasLogo) $('#logo').src = `/api/files/logo/${ev.id}?v=${ev.filesV || 0}`;
+  document.body.classList.remove('loading');
   $('#title').textContent = ev.boothTitle || ''; $('#tagline').textContent = ev.tagline || ''; $('#go').textContent = ev.startBtn || 'Start';
   kind = ''; renderStyles(); modeImages();
   const v = ev.filesV || 0, p = ev.print || {};
@@ -293,10 +294,10 @@ $('#staff').onclick = async (e) => {
 };
 
 (async () => {
-  if (!EVENT) { $('#title').textContent = 'Open this booth from the event page in admin'; $('#go').classList.add('hidden'); return; }
+  if (!EVENT) { document.body.classList.remove('loading'); $('#title').textContent = 'Open this booth from the event page in admin'; $('#go').classList.add('hidden'); return; }
   await ensureLogin('Staff sign-in for the booth');
   for (let i = 0; i < 3 && !ev; i++) {
-    try { await loadEvent(); } catch (e) { if (i === 2) { $('#tagline').textContent = 'Could not load this event (' + e.message + '). Check the internet, then reload.'; } else await sleep(1500); }
+    try { await loadEvent(); } catch (e) { if (i === 2) { document.body.classList.remove('loading'); $('#tagline').textContent = 'Could not load this event (' + e.message + '). Check the internet, then reload.'; } else await sleep(1500); }
   }
   keepAwake(); heartbeat();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
