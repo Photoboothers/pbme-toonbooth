@@ -26,15 +26,25 @@ async function loadEvent() {
   b.backgroundImage = ev.hasBg ? `url(/api/files/bg/${ev.id}?v=${ev.filesV || 0})` : '';
   $('#logo').classList.toggle('hidden', !ev.hasLogo); if (ev.hasLogo) $('#logo').src = `/api/files/logo/${ev.id}?v=${ev.filesV || 0}`;
   $('#title').textContent = ev.boothTitle || ''; $('#tagline').textContent = ev.tagline || ''; $('#go').textContent = ev.startBtn || 'Start';
-  const card = (s) => `<button class="style-card" data-s="${esc(s.id)}">${s.hasSample ? `<img src="/api/files/sample/${ev.id}/${esc(s.id)}?v=${ev.filesV || 0}" alt="">` : '<div class="ph"><img src="/img/pencil.png" alt=""></div>'}<span>${esc(s.name)}</span></button>`;
-  const list = onStyles(), groups = [...new Set(list.map((s) => s.group || ''))];
-  // lots of styles from several groups: show them under group headings so guests can find their favourite
-  $('#styleGrid').innerHTML = list.length > 6 && groups.length > 1 ? groups.map((g) => `<h3 class="sg">${esc(g || 'More')}</h3>${list.filter((s) => (s.group || '') === g).map(card).join('')}`).join('') : list.map(card).join('');
-  $('#styleGrid').querySelectorAll('[data-s]').forEach((el) => { el.onclick = () => { style = el.dataset.s; openCamera(); }; });
+  kind = ''; renderStyles();
   const v = ev.filesV || 0, p = ev.print || {};
   frames = { p: p.hasFrame ? await loadImg(`/api/files/frame/${ev.id}?v=${v}`) : null, l: p.hasFrameL ? await loadImg(`/api/files/framel/${ev.id}?v=${v}`) : null };
   document.title = ev.name + ' · AI Photo Booth';
 }
+
+let kind = '';
+function renderStyles() {
+  const card = (s) => `<button class="style-card" data-s="${esc(s.id)}">${s.hasSample ? `<img src="/api/files/sample/${ev.id}/${esc(s.id)}?v=${ev.filesV || 0}" alt="">` : '<div class="ph"><img src="/img/pencil.png" alt=""></div>'}<span>${esc(s.name)}</span></button>`;
+  const all = onStyles(), both = all.some((s) => s.kind === 'ai') && all.some((s) => s.kind !== 'ai');
+  $('#kinds').classList.toggle('hidden', !both);
+  if (!both) kind = ''; else if (!kind) kind = all[0].kind === 'ai' ? 'ai' : 'toon';
+  $('#kinds').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.kind === kind));
+  const list = kind ? all.filter((s) => (s.kind === 'ai' ? 'ai' : 'toon') === kind) : all, groups = [...new Set(list.map((s) => s.group || ''))];
+  // lots of styles from several groups: show them under group headings so guests can find their favourite
+  $('#styleGrid').innerHTML = list.length > 6 && groups.length > 1 ? groups.map((g) => `<h3 class="sg">${esc(g || 'More')}</h3>${list.filter((s) => (s.group || '') === g).map(card).join('')}`).join('') : list.map(card).join('');
+  $('#styleGrid').querySelectorAll('[data-s]').forEach((el) => { el.onclick = () => { style = el.dataset.s; openCamera(); }; });
+}
+$('#kinds').querySelectorAll('button').forEach((b) => { b.onclick = () => { kind = b.dataset.kind; renderStyles(); }; });
 
 // ---------- camera ----------
 async function openCamera() {

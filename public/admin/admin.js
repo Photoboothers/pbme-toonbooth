@@ -92,7 +92,7 @@ function tabLook(el) {
 function tabStyles(el) {
   const row = (s) => `<div class="card" data-style="${esc(s.id)}"><div class="row"><label class="switch"><input type="checkbox" data-k="on" ${s.on !== false ? 'checked' : ''}> On</label>
       <input type="text" data-k="name" value="${esc(s.name)}" style="width:220px">
-      <select data-k="shape" style="width:150px"><option value="portrait" ${s.shape !== 'landscape' ? 'selected' : ''}>Portrait</option><option value="landscape" ${s.shape === 'landscape' ? 'selected' : ''}>Landscape</option></select>
+      <select data-k="kind" style="width:150px"><option value="toon" ${s.kind !== 'ai' ? 'selected' : ''}>Toon</option><option value="ai" ${s.kind === 'ai' ? 'selected' : ''}>AI photo</option></select>
       <label class="switch" title="Gives each guest a random fun expression from the list below"><input type="checkbox" data-k="caricature" ${s.caricature ? 'checked' : ''}> Fun expressions</label>
       <label class="switch" title="Uses the event logo (Booth look tab)"><input type="checkbox" data-k="logo" ${s.logo ? 'checked' : ''}> Event logo on clothes</label><span class="grow"></span>
       <button class="btn ghost small" data-up-btn>Move up</button><button class="btn danger small" data-rm>Remove</button></div>
@@ -101,12 +101,12 @@ function tabStyles(el) {
     <label class="f">The look (AI prompt for the picture)</label><textarea data-k="prompt" style="min-height:80px">${esc(s.prompt)}</textarea>
     <label class="f">How it moves in the video (leave empty to use the event's default movement)</label><textarea data-k="motion" style="min-height:60px">${esc(s.motion || '')}</textarea></div>`;
   el.innerHTML = `<div class="card"><div class="row"><label class="switch"><input type="checkbox" id="guestChoice" ${ev.guestChoice ? 'checked' : ''}> Guests pick their style on the booth</label><span class="grow"></span><button class="btn" id="lib">+ Add from the style library</button><button class="btn ghost" id="add">+ Blank style</button></div>
-    <p class="hint">When off, every guest gets the first style that is on. Upload a sample image for each style so guests can see it on the style button (one of your own test results works best). To change a theme, just edit the words, for example "swinging a golf club" to "serving a tennis ball".</p></div>
+    <p class="hint">Styles are either Toon or AI photo. When an event has both, guests choose Toons or AI photos first on the booth. When off, every guest gets the first style that is on. Upload a sample image for each style so guests can see it on the style button (one of your own test results works best). To change a theme, just edit the words, for example "swinging a golf club" to "serving a tennis ball".</p></div>
     <div id="styles">${ev.styles.map(row).join('')}</div>
     <div class="card" style="margin-top:18px"><h2>Fun expressions</h2><p class="hint">One per line. Styles with "Fun expressions" ticked give each guest one of these at random.</p><textarea id="expr">${esc(ev.expressions.join('\n'))}</textarea></div>
     <button class="btn" id="save">Save styles</button>`;
   wireFiles(el);
-  const collect = () => $$('[data-style]', el).map((c) => ({ id: c.dataset.style, on: $('[data-k=on]', c).checked, name: $('[data-k=name]', c).value, shape: $('[data-k=shape]', c).value, caricature: $('[data-k=caricature]', c).checked, logo: $('[data-k=logo]', c).checked, group: (ev.styles.find((s) => s.id === c.dataset.style) || {}).group || '',
+  const collect = () => $$('[data-style]', el).map((c) => ({ id: c.dataset.style, on: $('[data-k=on]', c).checked, name: $('[data-k=name]', c).value, kind: $('[data-k=kind]', c).value, caricature: $('[data-k=caricature]', c).checked, logo: $('[data-k=logo]', c).checked, group: (ev.styles.find((s) => s.id === c.dataset.style) || {}).group || '',
     prompt: $('[data-k=prompt]', c).value, motion: $('[data-k=motion]', c).value, hasSample: (ev.styles.find((s) => s.id === c.dataset.style) || {}).hasSample }));
   const saveAll = () => put({ guestChoice: chk('guestChoice'), styles: collect(), expressions: lines(val('expr')) });
   $$('[data-rm]', el).forEach((b) => { b.onclick = () => { if (confirm('Remove this style from the event?')) b.closest('[data-style]').remove(); }; });
@@ -114,7 +114,7 @@ function tabStyles(el) {
   $('#add', el).onclick = async () => { await put({ guestChoice: chk('guestChoice'), styles: [...collect(), { name: 'New style', prompt: '', on: true }], expressions: lines(val('expr')) }); route(); };
   $('#lib', el).onclick = async () => {
     const lib = await api('/library'), have = new Set(ev.styles.map((s) => s.id)), groups = [...new Set(lib.map((s) => s.group))];
-    const m = modal(`<h2>Style library</h2><p class="hint">Tick the styles to add to this event. You can edit them after.</p>${groups.map((g) => `<h3 style="margin-top:14px">${esc(g)}</h3>${lib.filter((s) => s.group === g).map((s) => `<label class="switch" style="display:flex;margin:6px 0;align-items:flex-start"><input type="checkbox" value="${s.id}" ${have.has(s.id) ? 'disabled checked' : ''}><span><b>${esc(s.name)}</b>${s.shape === 'landscape' ? ' <span class="pill">Landscape</span>' : ''}${s.motion ? ' <span class="pill pink">Own animation</span>' : ''}<br><span class="muted">${esc(s.prompt.slice(0, 140))}…</span></span></label>`).join('')}`).join('')}
+    const m = modal(`<h2>Style library</h2><p class="hint">Tick the styles to add to this event. You can edit them after.</p>${[['toon', 'Toon styles'], ['ai', 'AI photo styles']].map(([k, title]) => `<h2 style="margin-top:20px">${title}</h2>` + groups.filter((g) => lib.some((s) => s.kind === k && s.group === g)).map((g) => `<h3 style="margin-top:14px">${esc(g)}</h3>${lib.filter((s) => s.group === g && s.kind === k).map((s) => `<label class="switch" style="display:flex;margin:6px 0;align-items:flex-start"><input type="checkbox" value="${s.id}" ${have.has(s.id) ? 'disabled checked' : ''}><span><b>${esc(s.name)}</b>${s.motion ? ' <span class="pill pink">Own animation</span>' : ''}<br><span class="muted">${esc(s.prompt.slice(0, 140))}…</span></span></label>`).join('')}`).join('')).join('')}
       <div class="row" style="margin-top:14px"><button class="btn" id="addSel">Add selected</button><button class="btn ghost" id="cancel">Cancel</button></div>`);
     m.el.querySelector('#cancel').onclick = m.close;
     m.el.querySelector('#addSel').onclick = async () => {
@@ -136,29 +136,27 @@ function tabPrint(el) {
     <label class="f">Copies per guest</label><input type="number" id="pcopies" min="1" max="5" value="${p.copies}" style="width:90px">
     <label class="switch" style="margin-top:12px"><input type="checkbox" id="pinset" ${p.inset ? 'checked' : ''}> Show the guest's original photo as a small polaroid (bottom left)</label>
     <label class="switch" style="margin-top:8px"><input type="checkbox" id="pqr" ${p.qr ? 'checked' : ''}> Small QR code (bottom right) that opens the guest's page</label>
-    ${fileRow('Frame (portrait)', 'frame/' + ev.id, p.hasFrame, 'Transparent PNG, 1200 x 1800 px, laid over portrait styles.')}
-    ${fileRow('Frame (landscape)', 'framel/' + ev.id, p.hasFrameL, 'Transparent PNG, 1800 x 1200 px, laid over landscape styles (such as the pixel game). They print turned on the same 4x6 paper.')}
-    <label class="f">Picture window, portrait (% of the page: left, top, width, height)</label><div class="row">${['x', 'y', 'w', 'h'].map((k) => `<input type="number" min="0" max="100" data-win="p${k}" value="${(p.win || { x: 0, y: 0, w: 100, h: 100 })[k]}" style="width:80px">`).join('')}</div>
-    <label class="f">Picture window, landscape</label><div class="row">${['x', 'y', 'w', 'h'].map((k) => `<input type="number" min="0" max="100" data-win="l${k}" value="${(p.winL || { x: 0, y: 0, w: 100, h: 100 })[k]}" style="width:80px">`).join('')}</div>
+    ${fileRow('Branded frame', 'frame/' + ev.id, p.hasFrame, 'Your own frame for this event: a transparent PNG, 1200 x 1800 px (4x6 portrait at 300 dpi), made in Canva or Photoshop. It goes over every style, so one frame works with all of them.')}
+    <label class="f">Picture window (% of the page: left, top, width, height)</label><div class="row">${['x', 'y', 'w', 'h'].map((k) => `<input type="number" min="0" max="100" data-win="p${k}" value="${(p.win || { x: 0, y: 0, w: 100, h: 100 })[k]}" style="width:80px">`).join('')}</div>
     <p class="hint">Leave at 0, 0, 100, 100 for a full-page picture. For a branded card frame (logos along the bottom), set the window to match the frame's clear area, for example 6, 5, 88, 75. The preview updates when you save.</p>
     <button class="btn" id="savep" style="margin-top:16px">Save print</button></div>
-    <div class="card"><h2>Preview</h2><div class="preview-wrap row" style="justify-content:center;align-items:center"><canvas id="pv" style="max-width:220px"></canvas><canvas id="pvl" style="max-width:300px"></canvas></div></div></div>
+    <div class="card"><h2>Preview</h2><div class="preview-wrap row" style="justify-content:center;align-items:center"><canvas id="pv" style="max-width:260px"></canvas></div></div></div>
     <div class="card"><h2>Animated video</h2>
     <label class="f">Default movement (used by styles without their own)</label><textarea id="vmotion">${esc(v.motion)}</textarea>
     <label class="f">Quality</label><select id="vres" style="width:200px">${['360p', '720p', '1080p'].map((r) => `<option ${v.resolution === r ? 'selected' : ''}>${r}</option>`).join('')}</select>
-    <p class="hint">Portrait styles make an upright phone video; landscape styles make a widescreen one. 720p is the best balance of speed, cost and quality.</p>
+    <p class="hint">Every video is upright (9:16) for phones. 720p is the best balance of speed, cost and quality.</p>
     <button class="btn" id="savev" style="margin-top:12px">Save video</button></div>`;
   wireFiles(el);
   (async () => {
     const vv = ev.filesV || 0, frames = { p: p.hasFrame ? await loadImg(`/api/files/frame/${ev.id}?v=${vv}`) : null, l: p.hasFrameL ? await loadImg(`/api/files/framel/${ev.id}?v=${vv}`) : null };
-    for (const [id, land] of [['pv', false], ['pvl', true]]) {
+    for (const [id, land] of [['pv', false]]) {
       const c = composePrint(ev, null, frames, 'https://example.com/v/preview', { landscape: land, w: land ? 600 : 400, h: land ? 400 : 600 }), pv = $('#' + id, el);
       pv.width = c.width; pv.height = c.height; pv.getContext('2d').drawImage(c, 0, 0);
     }
   })();
   $('#mode', el).onchange = async () => { const m = val('mode'); await put({ print: { on: m === 'both' || m === 'print' }, video: { on: m === 'both' || m === 'video' } }); };
   $('#savep', el).onclick = (e) => busy(e.target, async () => { const wv = (pre) => Object.fromEntries(['x', 'y', 'w', 'h'].map((k) => [k, +$(`[data-win=${pre}${k}]`, el).value]));
-    await put({ print: { from: val('pfrom'), copies: +val('pcopies'), qr: chk('pqr'), inset: chk('pinset'), win: wv('p'), winL: wv('l') } }); route(); });
+    await put({ print: { from: val('pfrom'), copies: +val('pcopies'), qr: chk('pqr'), inset: chk('pinset'), win: wv('p') } }); route(); });
   $('#savev', el).onclick = (e) => busy(e.target, () => put({ video: { motion: val('vmotion'), resolution: val('vres') } }));
 }
 

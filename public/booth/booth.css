@@ -61,3 +61,6 @@ body.booth { --bg: #121012; --accent: #ED2F5B; --text: #fff; background: var(--b
   .res-side { width: min(560px, 92vw); }
 }
 .style-grid .sg { grid-column: 1 / -1; margin: 10px 0 0; font-size: 22px; text-align: left; }
+.kinds { display: flex; gap: 10px; background: color-mix(in srgb, var(--text) 10%, transparent); padding: 6px; border-radius: 999px; }
+.kinds button { border: 0; border-radius: 999px; padding: 14px 34px; font: 800 20px Montserrat, sans-serif; background: transparent; color: var(--text); cursor: pointer; }
+.kinds button.on { background: var(--accent); color: #fff; }

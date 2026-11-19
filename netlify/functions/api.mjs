@@ -41,9 +41,9 @@ function cleanEvent(ev, b) {
   if (b.colors && typeof b.colors === 'object') for (const k of ['bg', 'accent', 'text']) if (/^#[0-9a-f]{6}$/i.test(b.colors[k] || '')) ev.colors[k] = b.colors[k];
   if (Array.isArray(b.styles)) {
     const seen = new Set();
-    ev.styles = b.styles.slice(0, 24).map((s, i) => {
+    ev.styles = b.styles.slice(0, 100).map((s, i) => {
       let id = /^[a-z0-9]{2,12}$/.test(s.id || '') ? s.id : 's' + rid(5); if (seen.has(id)) id = (id.slice(0, 6) + rid(5)); seen.add(id);
-      return { id, name: str(s.name, 30) || 'Style ' + (i + 1), prompt: str(s.prompt, 1200), motion: str(s.motion, 1500), shape: s.shape === 'landscape' ? 'landscape' : 'portrait',
+      return { id, name: str(s.name, 30) || 'Style ' + (i + 1), prompt: str(s.prompt, 1200), motion: str(s.motion, 1500), shape: 'portrait', kind: s.kind === 'ai' ? 'ai' : 'toon',
         caricature: !!s.caricature, logo: !!s.logo, group: str(s.group, 30), on: s.on !== false, hasSample: !!s.hasSample };
     });
   }
