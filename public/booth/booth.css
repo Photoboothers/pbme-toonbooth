@@ -1,0 +1,62 @@
+body.booth { --bg: #121012; --accent: #ED2F5B; --text: #fff; background: var(--bg) center / cover no-repeat; color: var(--text); min-height: 100vh; overflow: hidden; user-select: none; -webkit-user-select: none; }
+.screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); text-align: center; }
+.logo { max-width: 60vw; max-height: 16vh; object-fit: contain; }
+#title { font-size: clamp(38px, 7vw, 84px); font-weight: 800; margin: 0; letter-spacing: -.01em; }
+.tagline { font: 700 clamp(26px, 4vw, 44px) Caveat, cursive; margin: 0; opacity: .9; }
+.ask { font-size: clamp(26px, 4vw, 42px); font-weight: 800; margin: 0; }
+.huge { border: 0; border-radius: 999px; background: var(--accent); color: #fff; font: 800 clamp(24px, 3.4vw, 36px) Montserrat, sans-serif; padding: 26px 64px; cursor: pointer; box-shadow: 0 10px 40px rgba(0,0,0,.35); }
+.huge.small { font-size: clamp(20px, 2.6vw, 28px); padding: 20px 44px; }
+.huge:active { transform: scale(.97); }
+.huge[disabled] { opacity: .5; }
+.btn.light { color: var(--text); border-color: color-mix(in srgb, var(--text) 40%, transparent); }
+.btn.big { padding: 18px 30px; font-size: 20px; }
+.bar { display: flex; gap: 18px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.fine { font-size: 14px; opacity: .75; margin: 0; }
+.fine.big { font-size: 20px; opacity: 1; font-weight: 700; }
+.corner { position: fixed; right: 14px; bottom: 10px; color: var(--text); opacity: .25; font-size: 12px; text-decoration: none; }
+
+.style-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 230px)); gap: 20px; justify-content: center; width: min(1100px, 100%); }
+.style-card { border: 3px solid transparent; border-radius: 22px; background: color-mix(in srgb, var(--text) 10%, transparent); color: var(--text); padding: 12px; cursor: pointer; font: 800 20px Montserrat, sans-serif; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.style-card img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 14px; background: #fff; }
+.style-card .ph { width: 100%; aspect-ratio: 2 / 3; border-radius: 14px; background: #fdfcf8; display: flex; align-items: center; justify-content: center; }
+.style-card .ph img { width: 42%; aspect-ratio: auto; background: none; transform: rotate(-12deg); }
+.style-card:active { border-color: var(--accent); }
+
+.camwrap { position: relative; height: 72vh; aspect-ratio: 2 / 3; max-width: 92vw; border-radius: 24px; overflow: hidden; background: #000; box-shadow: 0 10px 50px rgba(0,0,0,.45); }
+.camwrap video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+.count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font: 800 30vh Montserrat, sans-serif; color: #fff; text-shadow: 0 6px 40px rgba(0,0,0,.6); }
+.flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+.flash.go { animation: flash .5s ease-out; }
+@keyframes flash { 0% { opacity: .95; } 100% { opacity: 0; } }
+.shotimg { height: 66vh; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 24px; max-width: 92vw; }
+
+/* ---------- the "magic happening" screen: the pencil scribbles across the page as the timer ---------- */
+.paper { width: min(1100px, 92vw); background: #fdfcf8; color: #141414; border-radius: 10px; padding: clamp(28px, 5vh, 60px) clamp(20px, 4vw, 60px) clamp(20px, 3vh, 40px); box-shadow: 0 18px 60px rgba(0,0,0,.45); transform: rotate(-1deg); }
+.mk-title { font: 800 clamp(40px, 6.5vw, 86px) Montserrat, sans-serif; margin: 0; letter-spacing: -.01em; }
+.mk-sub { font: 700 clamp(30px, 4.4vw, 56px) Caveat, cursive; margin: 6px 0 0; color: var(--accent); }
+.scribble { position: relative; margin-top: clamp(70px, 14vh, 170px); }
+.scribble svg { width: 100%; display: block; overflow: visible; }
+.sq { fill: none; stroke: #141414; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.pencil { position: absolute; left: 0; top: 0; width: clamp(80px, 11vw, 150px); transform-origin: 95% 99%; animation: wiggle .35s ease-in-out infinite alternate; pointer-events: none; }
+@keyframes wiggle { from { rotate: -4deg; } to { rotate: 5deg; } }
+.mkerr { font: 700 clamp(26px, 3.6vw, 40px) Caveat, cursive; margin: 0; }
+
+/* ---------- result ---------- */
+.res { display: flex; gap: 40px; align-items: center; justify-content: center; width: 100%; max-width: 1300px; }
+.toonimg { height: 78vh; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 18px; box-shadow: 0 12px 50px rgba(0,0,0,.45); background: #fff; max-width: 52vw; animation: pop .6s cubic-bezier(.2,1.4,.4,1); }
+@keyframes pop { from { transform: scale(.85) rotate(-3deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.res-side { display: flex; flex-direction: column; gap: 16px; align-items: center; width: min(420px, 40vw); }
+.ebox { display: flex; flex-direction: column; gap: 10px; width: 100%; text-align: left; background: color-mix(in srgb, var(--text) 10%, transparent); padding: 18px; border-radius: 18px; }
+.ebox b { font-size: 19px; }
+.ebox input[type=email] { font-size: 20px; padding: 14px; }
+.ebox .ok { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+.ebox .ok input { width: 22px; height: 22px; flex: none; accent-color: var(--accent); }
+.ebox .btn { background: var(--accent); font-size: 18px; padding: 14px; }
+.qrbox { display: flex; gap: 14px; align-items: center; text-align: left; }
+.qrbox canvas { width: 110px; height: 110px; background: #fff; border-radius: 10px; padding: 6px; }
+.qrbox p { margin: 0; font-weight: 700; max-width: 18ch; }
+@media (orientation: portrait) {
+  .res { flex-direction: column; gap: 18px; }
+  .toonimg { height: 46vh; max-width: 80vw; }
+  .res-side { width: min(560px, 92vw); }
+}

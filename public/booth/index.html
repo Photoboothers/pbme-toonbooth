@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Caricature Booth</title>
+<link rel="icon" href="/img/pbme-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/app-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Montserrat:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="/css/app.css">
+<link rel="stylesheet" href="/booth/booth.css">
+</head>
+<body class="booth">
+<section id="home" class="screen">
+  <img id="logo" class="logo hidden" alt="">
+  <h1 id="title">Caricature Booth</h1>
+  <p id="tagline" class="tagline"></p>
+  <button class="huge" id="go">Start</button>
+  <a class="corner" id="staff" href="#">Staff</a>
+</section>
+
+<section id="styles" class="screen hidden">
+  <h2 class="ask">Pick your style</h2>
+  <div id="styleGrid" class="style-grid"></div>
+  <button class="btn ghost light" id="stBack">Back</button>
+</section>
+
+<section id="camera" class="screen hidden">
+  <div class="camwrap"><video id="video" playsinline autoplay muted></video><div id="count" class="count hidden"></div><div id="flash" class="flash"></div></div>
+  <div class="bar"><button class="btn ghost light" id="camBack">Back</button><button class="huge small" id="snap">Take my photo</button></div>
+</section>
+
+<section id="review" class="screen hidden">
+  <img id="shot" class="shotimg" alt="">
+  <div class="bar"><button class="btn ghost light big" id="retake">Retake</button><button class="huge small" id="use">Draw me!</button></div>
+  <p class="fine">Your photo is used to create your caricature with AI.</p>
+</section>
+
+<section id="making" class="screen hidden">
+  <div class="paper">
+    <h2 id="mkTitle" class="mk-title">Magic happening</h2>
+    <p id="mkSub" class="mk-sub">Please wait, just a moment</p>
+    <div class="scribble" id="scribble">
+      <svg id="sq" viewBox="0 0 1000 160" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path id="sqPath" class="sq"/></svg>
+      <img id="pencil" class="pencil" src="/img/pencil.png" alt="">
+    </div>
+  </div>
+  <p id="mkErrMsg" class="mkerr hidden">The pencil slipped! Let's try that again.</p>
+  <div class="bar hidden" id="mkErr"><button class="btn ghost light big" id="mkHome">Start again</button><button class="huge small" id="mkRetry">Try again</button></div>
+</section>
+
+<section id="result" class="screen hidden">
+  <div class="res">
+    <img id="toon" class="toonimg" alt="Your caricature">
+    <div class="res-side">
+      <h2 id="resTitle" class="ask">Looking good!</h2>
+      <p id="printMsg" class="fine big hidden">Your print is on its way.</p>
+      <form id="ebox" class="ebox hidden" autocomplete="off">
+        <b id="eTitle">Get your video by email</b>
+        <input type="email" id="bemail" placeholder="your@email.com" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+        <label class="ok"><input type="checkbox" id="bok" required> <span id="consentTxt"></span></label>
+        <label class="ok hidden" id="mkRow"><input type="checkbox" id="bmk"> <span id="mkTxt"></span></label>
+        <button class="btn" id="bsend">Send</button><p id="bmsg" class="fine"></p>
+      </form>
+      <div class="qrbox"><canvas id="qr" width="200" height="200"></canvas><p id="qrTxt">Or scan to get it on your phone</p></div>
+      <button class="huge small" id="done">Done</button>
+    </div>
+  </div>
+</section>
+
+<iframe id="printframe" title="print" style="position:fixed;width:0;height:0;border:0;right:0;bottom:0"></iframe>
+<script type="module" src="/booth/booth.js"></script>
+</body>
+</html>

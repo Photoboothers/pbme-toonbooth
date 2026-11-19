@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Your caricature</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Montserrat:wght@600;700;800&display=swap">
+<style>
+  :root { --bg: #121012; --accent: #ED2F5B; --text: #fff; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: Montserrat, system-ui, sans-serif; }
+  .wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: max(18px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); text-align: center; }
+  .logo { max-height: 70px; max-width: 70vw; object-fit: contain; }
+  h1 { margin: 0; font-weight: 800; font-size: clamp(22px, 6vw, 32px); }
+  .media { width: min(88vw, 420px, calc(62vh * 2 / 3)); aspect-ratio: 2 / 3; background: #fff; border-radius: 14px; object-fit: cover; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+  video.media { aspect-ratio: auto; max-height: 70vh; width: auto; max-width: 92vw; background: #000; }
+  .btn { border: 0; cursor: pointer; color: #fff; font: 800 17px Montserrat, sans-serif; padding: 16px 30px; border-radius: 999px; background: var(--accent); text-decoration: none; display: inline-block; }
+  .btn.ghost { background: transparent; border: 2px solid color-mix(in srgb, var(--text) 50%, transparent); color: var(--text); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .note { font: 700 24px Caveat, cursive; margin: 0; }
+  .hint { font-size: 13px; opacity: .8; max-width: 34ch; line-height: 1.45; margin: 0; }
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <img class="logo" id="logo" alt="" hidden>
+  <h1 id="h">Your caricature</h1>
+  <img class="media" id="toon" alt="Your caricature" hidden>
+  <video class="media" id="vid" playsinline controls loop autoplay muted hidden></video>
+  <p class="note" id="note" hidden>Your video is being animated. This page updates by itself.</p>
+  <div class="row"><button class="btn" id="saveV" hidden>Save video</button><button class="btn" id="saveP">Save picture</button></div>
+  <p class="hint" id="hint"></p>
+</div>
+<script>
+(async () => {
+  const $ = (s) => document.querySelector(s);
+  const id = location.pathname.split('/').filter(Boolean)[1] || '';
+  const ua = navigator.userAgent, android = /Android/i.test(ua), ios = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1), mobile = android || ios;
+  const get = async () => { const r = await fetch('/api/public/v/' + encodeURIComponent(id), { cache: 'no-store' }); if (!r.ok) throw 0; return r.json(); };
+  let d;
+  try { d = await get(); } catch { $('#wrap').innerHTML = '<p>This link is not available.</p>'; return; }
+  const c = d.colors || {}, root = document.documentElement.style;
+  if (c.bg) root.setProperty('--bg', c.bg); if (c.accent) root.setProperty('--accent', c.accent); if (c.text) root.setProperty('--text', c.text);
+  if (d.logo) { $('#logo').src = d.logo; $('#logo').hidden = false; }
+  $('#h').textContent = d.heading || 'Your caricature'; if (d.name) document.title = d.name;
+  const vsrc = `/api/public/media/${d.id}/video.mp4`, psrc = `/api/public/media/${d.id}/toon`;
+  $('#toon').src = psrc;
+  $('#hint').textContent = ios ? 'Tap Save, then choose "Save Video" or "Save Image": it goes to your Photos.' : android ? 'Saves to your phone (Downloads, also shows in Gallery / Photos).' : 'Saves to your Downloads folder.';
+  // phones: the share sheet ("Save Video" on iPhone); Android and computers: a normal download
+  async function save(src, name, type) {
+    if (!ios) { const a = document.createElement('a'); a.href = src + '?dl=1'; a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 4000); return; }
+    try { const b = await (await fetch(src)).blob(); const f = new File([b], name, { type: b.type || type }); if (navigator.canShare && navigator.canShare({ files: [f] })) await navigator.share({ files: [f] }); else window.open(src, '_blank'); }
+    catch (e) { if (e && e.name !== 'AbortError') window.open(src, '_blank'); }
+  }
+  $('#saveP').onclick = () => save(psrc, 'My-caricature.png', 'image/png');
+  $('#saveV').onclick = () => save(vsrc, 'My-caricature-video.mp4', 'video/mp4');
+  function showState(v) {
+    const ready = v === 'ready';
+    $('#vid').hidden = !ready; $('#toon').hidden = ready; $('#saveV').hidden = !ready; $('#note').hidden = !(v === 'waiting' || v === 'making');
+    if (ready && !$('#vid').src) $('#vid').src = vsrc;
+  }
+  showState(d.video);
+  while (d.video === 'waiting' || d.video === 'making') { await new Promise((r) => setTimeout(r, 8000)); try { d = await get(); showState(d.video); } catch { /* keep trying */ } }
+})();
+</script>
+</body>
+</html>
