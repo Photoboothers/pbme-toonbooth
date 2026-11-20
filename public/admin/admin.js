@@ -80,7 +80,7 @@ function tabLook(el) {
     <label class="f">Title</label><input type="text" id="boothTitle" value="${esc(ev.boothTitle)}">
     <label class="f">Tagline</label><input type="text" id="tagline" value="${esc(ev.tagline)}">
     <label class="f">Start button</label><input type="text" id="startBtn" value="${esc(ev.startBtn)}">
-    <h2 style="margin-top:22px">While the caricature is drawn</h2>
+    <h2 style="margin-top:22px">While the picture is created</h2>
     <label class="f">Headline</label><input type="text" id="makingTitle" value="${esc(ev.makingTitle)}">
     <label class="f">Second line</label><input type="text" id="makingSub" value="${esc(ev.makingSub)}">
     <div class="row" style="margin-top:14px"><label class="f">Countdown (seconds)</label><input type="number" id="countdown" min="0" max="10" value="${ev.countdown}" style="width:90px">
