@@ -269,7 +269,10 @@ const pick = (...ids) => ids.map((id) => ({ ...STYLE_LIBRARY.find((s) => s.id ==
 // the order categories appear in on the booth
 export const GROUP_ORDER = ['Superheroes', 'Red Carpet', 'Sports', 'Movies', 'Futuristic', 'Festive', 'Fun photos', 'Line Drawing', 'Cartoon', 'Anime Film', 'Pixel Game', 'Doll', 'Watercolour', 'Fashion Sketch', 'Mini Me', 'Bobbleheads'];
 export const MAX_PER_MODE = 12;
-export const DEFAULT_STYLES = pick('elf', 'laugh', 'redcarpet', 'minime', 'pixel');
+// new events start with 12 Toon Style and 12 AI Create styles ticked, one or more from every category
+export const DEFAULT_STYLES = pick(
+  'pencil', 'lineart', 'cartoon', 'laugh', 'retroanime', 'pixel', 'dollbox', 'water', 'fashion', 'minime', 'bobble', 'chibiemo',
+  'squad', 'cyberhero', 'premiere', 'gala', 'football', 'basketball', 'spy', 'dragon', 'cyberpunk', 'future', 'elf', 'planetdxb');
 export const DEFAULT_EXPRESSIONS = [
   'laughing out loud, eyes squeezed shut with joy',
   'amazed, mouth wide open in a big "wow"',
