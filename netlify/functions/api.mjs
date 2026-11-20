@@ -40,7 +40,7 @@ function cleanEvent(ev, b) {
   if (Array.isArray(b.groupsOff)) ev.groupsOff = b.groupsOff.map((g) => str(g, 30)).slice(0, 40);
   if (['both', 'ai', 'toon'].includes(b.boothType)) ev.boothType = b.boothType;
   if (b.countdown !== undefined) ev.countdown = Math.max(0, Math.min(10, Math.round(+b.countdown || 0)));
-  if (b.resetSec !== undefined) ev.resetSec = Math.max(10, Math.min(120, Math.round(+b.resetSec || 25)));
+  if (b.resetSec !== undefined) ev.resetSec = Math.max(45, Math.min(300, Math.round(+b.resetSec || 45)));
   if (b.colors && typeof b.colors === 'object') for (const k of ['bg', 'accent', 'text']) if (/^#[0-9a-f]{6}$/i.test(b.colors[k] || '')) ev.colors[k] = b.colors[k];
   if (Array.isArray(b.styles)) {
     const seen = new Set();

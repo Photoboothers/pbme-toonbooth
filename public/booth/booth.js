@@ -15,7 +15,9 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 // back to the start screen when nobody touches the booth for a while (never while the caricature is being made)
 function armIdle(id) {
   clearTimeout(idle); if (!ev || id === 'home' || id === 'making' || (id === 'modes' && startsOnModes())) return;
-  idle = setTimeout(() => goHome(), (ev.resetSec || 25) * 1000 * (id === 'result' ? 2 : 1));
+  // generous on the camera and review screens: guests take their time to pose
+  const base = Math.max(ev.resetSec || 45, 45), mult = { camera: 3, review: 2, result: 2 }[id] || 1;
+  idle = setTimeout(() => { if ($('#snap').disabled) return armIdle(id); goHome(); }, base * 1000 * mult);
 }
 ['pointerdown', 'keydown', 'input'].forEach((t) => document.addEventListener(t, () => { const s = document.querySelector('.screen:not(.hidden)'); if (s) armIdle(s.id); }, true));
 

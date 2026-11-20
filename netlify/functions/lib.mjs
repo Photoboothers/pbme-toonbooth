@@ -292,7 +292,7 @@ export function newEvent(id, name) {
     email: { enabled: true, atBooth: true, senderName: '', subject: 'Your AI Create Booth video', heading: 'Your video',
       message: 'Thanks for stopping by! Here is your video from the AI Create Booth. Tap below to watch it and save it to your phone.', button: 'Watch my video',
       consent: 'I agree to receive this email with my video.', marketing: false, marketingText: 'Keep me updated with news and offers from the event organiser.' },
-    hasLogo: false, hasBg: false, resetSec: 25,
+    hasLogo: false, hasBg: false, resetSec: 45,
   };
 }
 

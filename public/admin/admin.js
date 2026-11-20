@@ -84,7 +84,7 @@ function tabLook(el) {
     <label class="f">Headline</label><input type="text" id="makingTitle" value="${esc(ev.makingTitle)}">
     <label class="f">Second line</label><input type="text" id="makingSub" value="${esc(ev.makingSub)}">
     <div class="row" style="margin-top:14px"><label class="f">Countdown (seconds)</label><input type="number" id="countdown" min="0" max="10" value="${ev.countdown}" style="width:90px">
-      <label class="f">Back to start after (seconds idle)</label><input type="number" id="resetSec" min="10" max="120" value="${ev.resetSec}" style="width:90px"></div>
+      <label class="f">Back to start after (seconds idle)</label><input type="number" id="resetSec" min="45" max="300" value="${ev.resetSec}" style="width:90px"></div>
     <button class="btn" id="save" style="margin-top:18px">Save</button></div>
     <div class="card"><h2>Colours and images</h2>
     <div class="row"><label class="switch"><input type="color" id="cbg" value="${c.bg}"> Background</label><label class="switch"><input type="color" id="cacc" value="${c.accent}"> Buttons</label><label class="switch"><input type="color" id="ctext" value="${c.text}"> Text</label></div>
