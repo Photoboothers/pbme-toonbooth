@@ -11,7 +11,12 @@ export async function api(path, opts = {}) {
     if (opts.body instanceof Blob || opts.body instanceof ArrayBuffer) init.body = opts.body;
     else { init.body = JSON.stringify(opts.body); init.headers['content-type'] = 'application/json'; }
   }
-  const r = await fetch('/api' + path, init);
+  let r;
+  try { r = await fetch('/api' + path, init); }
+  catch (e) {   // a dropped or blocked request: try once more before showing an error
+    await new Promise((ok) => setTimeout(ok, 800));
+    try { r = await fetch('/api' + path, init); } catch { throw new Error('Could not reach the server. Check the internet connection and try again.'); }
+  }
   if (r.status === 401 && !opts.allow401) { window.dispatchEvent(new CustomEvent('tb-auth')); throw new Error('Please sign in again.'); }
   const t = await r.text(); let j = {}; try { j = t ? JSON.parse(t) : {}; } catch { j = { error: t.slice(0, 300) }; }
   if (!r.ok) throw new Error(j.error || `Server error ${r.status}`);
@@ -88,3 +93,6 @@ export function printBlob(blob, frameEl) {
   }));
   return printChain;
 }
+
+// the offline helper only looks after the booth pages; remove any older copy that also covered admin
+if ('serviceWorker' in navigator && !location.pathname.startsWith('/booth')) navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => { if (!new URL(r.scope).pathname.startsWith('/booth')) r.unregister(); })).catch(() => {});

@@ -317,6 +317,9 @@ $('#staff').onclick = async (e) => {
     try { await loadEvent(); } catch (e) { if (i === 2) { document.body.classList.remove('loading'); $('#tagline').textContent = 'Could not load this event (' + e.message + '). Check the internet, then reload.'; } else await sleep(1500); }
   }
   keepAwake(); heartbeat();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => { if (!new URL(r.scope).pathname.startsWith('/booth')) r.unregister(); })).catch(() => {});
+    navigator.serviceWorker.register('/sw.js', { scope: '/booth/' }).catch(() => {});
+  }
 })();
 window.addEventListener('tb-auth', () => ensureLogin('Staff sign-in for the booth'));

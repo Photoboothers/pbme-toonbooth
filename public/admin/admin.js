@@ -16,7 +16,7 @@ function renderLogin() {
   document.getElementById('nav').classList.add('hidden');
   app.innerHTML = `<div class="card login"><h1>Sign in</h1><p class="muted">AI Create Booth admin</p><form id="lf"><label class="f">Admin password</label><input type="password" id="pw" autofocus>
     <p id="lerr" class="hint" style="color:var(--bad)"></p><button class="btn" style="width:100%;margin-top:10px">Sign in</button></form></div>`;
-  $('#lf').onsubmit = async (e) => { e.preventDefault(); try { await api('/login', { method: 'POST', body: { password: $('#pw').value }, allow401: true }); route(); } catch (err) { $('#lerr').textContent = err.message; } };
+  $('#lf').onsubmit = async (e) => { e.preventDefault(); try { await api('/login', { method: 'POST', body: { password: $('#pw').value }, allow401: true }); route(); } catch (err) { if (await fetch('/api/me', { credentials: 'same-origin' }).then((r) => r.ok).catch(() => false)) return route(); $('#lerr').textContent = err.message; } };
 }
 async function route() {
   try { await api('/me', { allow401: true }); } catch { return renderLogin(); }

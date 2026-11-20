@@ -1,5 +1,5 @@
 // Keeps the booth working after a reload with no internet: pages, fonts and event images are saved on the device.
-const V = 'tb-v4', SHELL = ['/booth/', '/booth/index.html', '/booth/booth.js', '/booth/booth.css', '/css/app.css', '/js/common.js', '/js/qr.js', '/js/queue.js', '/img/pencil.png', '/img/pbme-icon.svg', '/v/index.html', '/station/', '/station/index.html', '/station/station.js', '/station/station.css', '/js/help.js'];
+const V = 'tb-v5', SHELL = ['/booth/', '/booth/index.html', '/booth/booth.js', '/booth/booth.css', '/css/app.css', '/js/common.js', '/js/qr.js', '/js/queue.js', '/img/pencil.png', '/img/pbme-icon.svg', '/v/index.html', '/station/', '/station/index.html', '/station/station.js', '/station/station.css', '/js/help.js'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(V).then((c) => c.addAll(SHELL)).catch(() => {})); self.skipWaiting(); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== V).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 const timeout = (p, ms) => Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('slow')), ms))]);
