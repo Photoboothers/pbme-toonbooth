@@ -97,7 +97,8 @@ async function snap() {
   const s = Math.min(1, 1600 / ch), cv = document.createElement('canvas'); cv.width = Math.round(cw * s); cv.height = Math.round(ch * s);
   const g = cv.getContext('2d'); g.translate(cv.width, 0); g.scale(-1, 1); g.drawImage(v, sx, 0, cw, ch, 0, 0, cv.width, cv.height);
   photo = await toJpeg(cv, 0.9); $('#snap').disabled = false; $('.cambar').style.visibility = ''; $('#camBack').style.visibility = '';
-  $('#shot').src = URL.createObjectURL(photo); show('review');
+  $('#shot').src = URL.createObjectURL(photo);
+  start();   // straight to "Magic happening": no review step, guests stop posing the moment the photo is taken
 }
 
 // ---------- making the caricature: the pencil scribbling across the page is the timer ----------
@@ -124,7 +125,7 @@ function drawFrame() {
 }
 function sketching(on) {
   clearInterval(progTimer); cancelAnimationFrame(raf); if (!on) return;
-  $('#mkTitle').textContent = ev.makingTitle || 'Magic happening'; $('#mkSub').textContent = ev.makingSub || 'Please wait, just a moment';
+  $('#mkTitle').textContent = ev.makingTitle || 'Please wait'; $('#mkSub').textContent = ev.makingSub || 'whilst the magic happens';
   $('#mkErrMsg').classList.add('hidden'); $('.paper').classList.remove('hidden');
   const path = $('#sqPath'); path.setAttribute('d', squigglePath()); pathLen = path.getTotalLength();
   path.style.strokeDasharray = String(pathLen); target = 0.01; shown = 0;
@@ -191,12 +192,13 @@ async function syncAll() {
 async function start() {
   $('#use').disabled = true; $('#mkErr').classList.add('hidden');
   const job = { id: newId(), eventId: EVENT, style, photo, created: Date.now(), emails: [] };
+  stopCamera(); show('making'); sketching(true);   // the waiting screen shows instantly; sending happens behind it
   await saveJob(job); cur = { id: job.id, job };   // safe on this device before anything else happens
   try {
     if (instantForced() || (!navigator.onLine)) throw new Error('offline');
     await processJob(job, { noPost: true, startMs: 20000 });
-    stopCamera(); show('making'); sketching(true); wait(job.id);
-  } catch { stopCamera(); await instant(job); }
+    wait(job.id);
+  } catch { sketching(false); await instant(job); }
   finally { $('#use').disabled = false; updateDot(); }
 }
 async function wait(id) {

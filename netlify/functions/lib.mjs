@@ -286,7 +286,7 @@ export function newEvent(id, name) {
     boothTitle: 'AI Create Booth', tagline: 'Pick a style. Strike a pose.', startBtn: 'Start',
     colors: { bg: '#121012', accent: '#ED2F5B', text: '#FFFFFF' },
     styles: DEFAULT_STYLES.map((s) => ({ ...s })), guestChoice: true, expressions: DEFAULT_EXPRESSIONS.slice(),
-    allowGroup: true, countdown: 3, makingTitle: 'Magic happening', makingSub: 'Please wait, just a moment',
+    allowGroup: true, countdown: 3, makingTitle: 'Please wait', makingSub: 'whilst the magic happens',
     video: { on: true, motion: DEFAULT_MOTION, aspect: '9:16', resolution: '720p' },
     print: { on: true, from: 'station', copies: 1, qr: true, inset: true, hasFrame: false, hasFrameL: false },
     email: { enabled: true, atBooth: true, senderName: '', subject: 'Your AI Create Booth video', heading: 'Your video',
