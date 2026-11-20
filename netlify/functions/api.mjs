@@ -181,7 +181,8 @@ export default async (req) => {
       const id = seg[1]; if (!validId(id)) return err('Bad event id');
       const ev = await EV().get(id, { type: 'json' }); if (!ev) return err('Event not found', 404);
       if (seg.length === 2 && method === 'GET') { const st = (await SET().get('global', { type: 'json' })) || {}; // library styles always use the library's current category and type
-        const styles = (ev.styles || []).map((x) => { const l = STYLE_LIBRARY.find((y) => y.id === x.id); return l ? { ...x, group: l.group, kind: l.kind } : x; });
+        const REMOVED = ['redcarpet'];   // styles taken out of the library also disappear from older events
+        const styles = (ev.styles || []).filter((x) => !REMOVED.includes(x.id)).map((x) => { const l = STYLE_LIBRARY.find((y) => y.id === x.id); return l ? { ...x, group: l.group, kind: l.kind } : x; });
         return json({ ...ev, styles, groupOrder: GROUP_ORDER, libSamples: st.libSamples || {} }); }
       if (seg[2] === 'samples' && method === 'POST') {   // make example pictures for the style buttons from one staff photo
         if (!process.env.GEMINI_API_KEY) return err('GEMINI_API_KEY is not set in Netlify yet (then redeploy).', 503);
