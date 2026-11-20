@@ -86,7 +86,7 @@ async function openCamera() {
 }
 function stopCamera() { if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; } }
 async function snap() {
-  $('#snap').disabled = true; const c = $('#count'); c.classList.remove('hidden');
+  $('#snap').disabled = true; $('.cambar').style.visibility = 'hidden'; $('#camBack').style.visibility = 'hidden'; const c = $('#count'); c.classList.remove('hidden');
   for (let n = ev.countdown ?? 3; n > 0; n--) { c.textContent = n; await sleep(900); }
   c.textContent = ''; c.classList.add('hidden');
   const v = $('#video'), fl = $('#flash'); fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go');
@@ -94,7 +94,7 @@ async function snap() {
   const vw = v.videoWidth, vh = v.videoHeight, ch = vh, cw = Math.min(vw, Math.round(vh * 2 / 3)), sx = (vw - cw) / 2;
   const s = Math.min(1, 1600 / ch), cv = document.createElement('canvas'); cv.width = Math.round(cw * s); cv.height = Math.round(ch * s);
   const g = cv.getContext('2d'); g.translate(cv.width, 0); g.scale(-1, 1); g.drawImage(v, sx, 0, cw, ch, 0, 0, cv.width, cv.height);
-  photo = await toJpeg(cv, 0.9); $('#snap').disabled = false;
+  photo = await toJpeg(cv, 0.9); $('#snap').disabled = false; $('.cambar').style.visibility = ''; $('#camBack').style.visibility = '';
   $('#shot').src = URL.createObjectURL(photo); show('review');
 }
 
@@ -292,6 +292,7 @@ $('#staff2').onclick = (e) => $('#staff').onclick(e);
 $('#stBack').onclick = () => (bothKinds() ? show('modes') : goHome());
 $('#camBack').onclick = () => { stopCamera(); if (choosing()) show('styles'); else goHome(); };
 $('#snap').onclick = snap;
+$('#video').onclick = () => { if (!$('#snap').disabled) snap(); };
 $('#retake').onclick = openCamera;
 $('#use').onclick = start;
 $('#mkHome').onclick = goHome;
