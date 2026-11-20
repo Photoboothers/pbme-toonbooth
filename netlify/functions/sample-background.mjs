@@ -17,3 +17,5 @@ export default async (req) => {
     } catch (e) { console.log('sample failed', id, e.message); }
   }
 };
+
+export const config = { background: true };

@@ -22,3 +22,5 @@ export default async (req) => {
   }
   await flushEmails(id, origin);
 };
+
+export const config = { background: true };

@@ -39,7 +39,9 @@ function renderSettings() {
     <div>Email (Brevo)</div><div>${p(settings.emailReady)} <span class="muted">EMAIL_API_KEY in Netlify. Sends from ${esc(settings.emailFrom)}</span></div>
     <div>Caricature model</div><div><code>${esc(settings.imageModel)}</code> <span class="muted">change with GEMINI_IMAGE_MODEL</span></div>
     <div>Video model</div><div><code>${esc(settings.videoModel)}</code> <span class="muted">change with GEMINI_VIDEO_MODEL</span></div></div>
-    <p class="hint">After changing environment variables in Netlify, redeploy the site.</p></div>`;
+    <p class="hint">After changing environment variables in Netlify, redeploy the site.</p>
+    <button class="btn" id="testAi" style="margin-top:10px">Test the AI now</button><p id="testMsg" class="hint"></p></div>`;
+  $('#testAi').onclick = (e) => busy(e.target, async () => { $('#testMsg').textContent = 'Testing… (up to 30 seconds)'; const r = await api('/test-ai', { method: 'POST' }); $('#testMsg').textContent = r.ok ? `Working: the AI made a test picture in ${r.seconds} seconds (${r.model}).` : `Not working (${r.model}): ${r.error}`; });
 }
 
 async function renderEvents() {

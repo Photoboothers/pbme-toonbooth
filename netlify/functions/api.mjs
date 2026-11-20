@@ -153,6 +153,17 @@ export default async (req) => {
     if (!isAdmin(req)) return err('Not signed in', 401);
 
     if (path === '/library' && method === 'GET') return json(STYLE_LIBRARY);
+    if (path === '/test-ai' && method === 'POST') {   // quick check that the Gemini key and picture model work
+      if (!process.env.GEMINI_API_KEY) return err('GEMINI_API_KEY is not set in Netlify (then redeploy).', 503);
+      const t0 = Date.now();
+      try {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL()}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'A simple cartoon drawing of a smiling yellow sun on a white background.' }] }], generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } }) });
+        const j = await r.json().catch(() => ({}));
+        const ok = r.ok && JSON.stringify(j).includes('inlineData');
+        return json({ ok, model: IMAGE_MODEL(), seconds: Math.round((Date.now() - t0) / 100) / 10, error: ok ? '' : ((j.error && j.error.message) || `status ${r.status}`) });
+      } catch (e) { return json({ ok: false, model: IMAGE_MODEL(), error: e.message }); }
+    }
     if (path === '/settings' && method === 'GET') {
       const s = (await SET().get('global', { type: 'json' })) || {};
       return json({ emailFrom: process.env.EMAIL_FROM || s.emailFrom || DEFAULT_FROM, emailReady: !!process.env.EMAIL_API_KEY, geminiReady: !!process.env.GEMINI_API_KEY, imageModel: IMAGE_MODEL(), videoModel: VIDEO_MODEL() });
@@ -226,7 +237,12 @@ export default async (req) => {
         return json({ id });
       }
       const id = seg[1]; const meta = await shotMeta(id); if (!meta) return err('Not found', 404);
-      if (seg.length === 2 && method === 'GET') return json(meta);
+      if (seg.length === 2 && method === 'GET') {
+        // the drawing job never reported back (it did not start, or was cut off): mark it so the booth can move on
+        const started = meta.toonStart || meta.created;
+        if (meta.toon === 'making' && Date.now() - started > (meta.toonStart ? 150000 : 45000)) return json(await patchShot(id, (cur) => { cur.toon = 'error'; cur.toonError = meta.toonStart ? 'The AI took too long (over 2.5 minutes)' : 'The drawing job did not start (check the toon-background function log in Netlify)'; return cur; }));
+        return json(meta);
+      }
       if (seg.length === 3 && ['toon', 'print', 'thumb'].includes(seg[2]) && method === 'GET') {
         const r = await FILES().getWithMetadata(`${seg[2]}/${id}`, { type: 'arrayBuffer' }); if (!r) return err('Not ready', 404);
         return new Response(r.data, { headers: { 'content-type': (r.metadata && r.metadata.type) || 'image/jpeg', 'cache-control': 'private, max-age=600' } });

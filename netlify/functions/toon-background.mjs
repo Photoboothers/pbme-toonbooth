@@ -5,7 +5,7 @@ export default async (req) => {
   const { id, origin, k } = await req.json().catch(() => ({}));
   if (!id || k !== jobKey(id)) return;
   try {
-    const m = await shotMeta(id); if (!m) return;
+    const m = await patchShot(id, (cur) => { cur.toonStart = Date.now(); return cur; }); if (!m) return;
     const ev = await EV().get(m.eventId, { type: 'json' });
     const style = (ev.styles || []).find((s) => s.id === m.style) || (ev.styles || [])[0];
     const photo = await FILES().get(`photo/${id}`, { type: 'arrayBuffer' });
@@ -24,3 +24,5 @@ export default async (req) => {
     await patchShot(id, (cur) => { cur.toon = 'error'; cur.toonError = e.message; return cur; });
   }
 };
+
+export const config = { background: true };
