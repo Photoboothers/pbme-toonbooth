@@ -176,8 +176,10 @@ async function postProcess(job) {
     const blob = await toJpeg(forPrinter(composePrint(ev, toon, frames, linkOf(job.id), { photo: ph })), 0.93);
     if (ev.print.from === 'booth') for (let k = 0; k < (ev.print.copies || 1); k++) await printBlob(blob, $('#printframe'));
     const r = await tfetch(`/api/shots/${job.id}/print`, { method: 'PUT', body: blob }, 30000);
-    if (r.ok) { if (ev.print.from === 'booth') tfetch(`/api/shots/${job.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ printed: true, printedBy: 'booth' }) }).catch(() => {}); }
-    job.printDone = 1; await saveJob(job);   // printed at the booth even if the upload must wait
+    if (r.ok && ev.print.from === 'booth') tfetch(`/api/shots/${job.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ printed: true, printedBy: 'booth' }) }).catch(() => {});
+    // the print station can only print once the print file has reached the server: if the upload failed, try again next round
+    if (r.ok || ev.print.from === 'booth') { job.printDone = 1; await saveJob(job); }
+    else if (ev.print.from !== 'booth') return;
   }
   if (job.thumb) { job.posted = Date.now(); job.photo = null; await saveJob(job); }
 }
