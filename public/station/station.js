@@ -1,5 +1,5 @@
 import { api, esc, toast, modal, ensureLogin, printBlob } from '/js/common.js';
-import { kioskHelpHTML } from '/js/help.js';
+import { kioskHelpHTML, downloadStartFile } from '/js/help.js';
 
 const $ = (s) => document.querySelector(s);
 const EVENT = new URLSearchParams(location.search).get('event') || '';
@@ -65,7 +65,7 @@ $('#testprint').onclick = async () => {
   x.fillStyle = '#111'; x.font = 'bold 90px Montserrat, Arial'; x.textAlign = 'center'; x.fillText('Test print 4x6', 600, 860); x.font = '50px Montserrat, Arial'; x.fillText('Border should be even on all sides', 600, 960);
   printBlob(await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.92)), $('#printframe'));
 };
-$('#help').onclick = () => { const m = modal(`<h2>Printer setup</h2>${kioskHelpHTML}<button class="btn" style="margin-top:12px">Close</button>`); m.el.querySelector('button').onclick = m.close; };
+$('#help').onclick = () => { const m = modal(`<h2>Printer setup</h2>${kioskHelpHTML}<button class="btn ghost" id="hClose" style="margin-top:12px">Close</button>`); m.el.querySelector('#hClose').onclick = m.close; m.el.querySelector('#dlStart').onclick = downloadStartFile; };
 window.addEventListener('tb-auth', () => ensureLogin('Staff sign-in').then(poll));
 window.addEventListener('beforeunload', (e) => { if (on) { e.preventDefault(); e.returnValue = ''; } });
 setInterval(() => { if (EVENT) api('/events/' + EVENT).then((e) => { ev = e; }).catch(() => {}); }, 30000);
