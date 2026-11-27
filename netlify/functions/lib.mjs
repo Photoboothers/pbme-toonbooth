@@ -132,6 +132,9 @@ export const STYLE_LIBRARY = [
   { id: 'cricket', kind: 'ai', name: 'Cricket hero', shape: 'portrait', caricature: false, group: 'Sports',
     prompt: 'a polished, realistic sports illustration: as a professional cricketer in a plain coloured team kit with no badges, logos or numbers, batting pads and gloves, crouched ready with the bat at the crease beside the stumps, full body, in a huge sunny cricket stadium',
     motion: 'Big hit: the ball comes in, they swing and smash it high into the stands, then raise the bat to the crowd as the stadium cheers. Keep the same style, kit and stadium. The camera follows the shot. Bat crack and crowd roar, no words.' },
+  { id: 'stormhero', kind: 'ai', name: 'Storm superhero', shape: 'portrait', caricature: false, group: 'Superheroes',
+    prompt: 'a photo-realistic cinematic superhero image: as an original superhero in a sleek black armoured suit with silver panel lines and a glowing white-blue light in the centre of the chest and on each shoulder (a suit of your own design, no real superhero emblems, symbols or logos), a long black cape billowing behind, flying powerfully straight towards the camera with fists clenched and a determined expression, above a dark futuristic city skyline with smoke and fiery glows below, dramatic stormy clouds and bright lightning bolts around them',
+    motion: 'They surge towards the camera through the storm, cape whipping behind, lightning cracking around them, then stop mid-air and hover as the chest light flares brighter and they give a confident nod. Keep it photo-realistic with the same suit and stormy city. The camera pulls back as they approach. Thunder, wind and a power-up hum, no words.' },
   { id: 'cyberhero', kind: 'ai', name: 'Cyber hero', shape: 'portrait', caricature: false, group: 'Superheroes',
     prompt: 'a photo-realistic cinematic superhero image: as an original cyber superhero in a sleek high-tech armoured suit of your own design (deep purple and black with glowing cyan details, no real superhero costumes, symbols or logos) with a long flowing cape, flying straight towards the camera through a towering neon futuristic city at dusk, flying vehicles and glowing screens all around, dramatic low-angle shot',
     motion: 'They rocket towards the camera through the neon city, cape whipping behind, swerve past a flying vehicle, then stop mid-air and hover with a confident look as their suit glows brighter. Keep it photo-realistic with the same suit and city. The camera pulls back fast. Whoosh and power hum, no words.' },
@@ -269,7 +272,7 @@ export const MAX_PER_MODE = 12;
 // new events start with 12 Toon Style and 12 AI Create styles ticked, one or more from every category
 export const DEFAULT_STYLES = pick(
   'pencil', 'lineart', 'cartoon', 'laugh', 'retroanime', 'pixel', 'dollbox', 'water', 'fashion', 'minime', 'bobble', 'chibiemo',
-  'squad', 'cyberhero', 'premiere', 'gala', 'football', 'basketball', 'spy', 'dragon', 'cyberpunk', 'future', 'elf', 'planetdxb');
+  'stormhero', 'cyberhero', 'premiere', 'gala', 'football', 'basketball', 'spy', 'dragon', 'cyberpunk', 'future', 'elf', 'planetdxb');
 export const DEFAULT_EXPRESSIONS = [
   'laughing out loud, eyes squeezed shut with joy',
   'amazed, mouth wide open in a big "wow"',
