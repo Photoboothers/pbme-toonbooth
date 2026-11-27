@@ -138,9 +138,6 @@ export const STYLE_LIBRARY = [
   { id: 'cyberhero', kind: 'ai', name: 'Cyber hero', shape: 'portrait', caricature: false, group: 'Superheroes',
     prompt: 'a photo-realistic cinematic superhero image: as an original cyber superhero in a sleek high-tech armoured suit of your own design (deep purple and black with glowing cyan details, no real superhero costumes, symbols or logos) with a long flowing cape, flying straight towards the camera through a towering neon futuristic city at dusk, flying vehicles and glowing screens all around, dramatic low-angle shot',
     motion: 'They rocket towards the camera through the neon city, cape whipping behind, swerve past a flying vehicle, then stop mid-air and hover with a confident look as their suit glows brighter. Keep it photo-realistic with the same suit and city. The camera pulls back fast. Whoosh and power hum, no words.' },
-  { id: 'rooftop', kind: 'ai', name: 'Rooftop guardian', shape: 'portrait', caricature: false, group: 'Superheroes',
-    prompt: 'a photo-realistic cinematic superhero still: as an original superhero in a textured blue and red suit with gold trim and a flowing red cape (a suit of your own design, no real superhero emblems, symbols or logos), crouched on the ledge of a tall glass skyscraper, looking out over the city with a determined expression, soft overcast daylight',
-    motion: 'They rise from the crouch, the cape catching the wind, look to the camera with a small confident smile, then leap off the ledge and soar upwards. Keep it photo-realistic with the same suit and building. The camera tilts up with them. Wind and a heroic swell, no words.' },
   { id: 'bobble', kind: 'toon', name: 'Classic bobblehead', shape: 'portrait', caricature: false, group: 'Bobbleheads',
     prompt: 'a 3D-rendered collectible bobblehead figurine, full body: a big head (true likeness, real facial features, natural smile) on a small body, wearing the same clothes as in the photo, arms folded confidently, standing on a round light oak wooden display base, smooth painted resin finish, soft studio lighting, plain solid bright blue studio backdrop',
     motion: 'The bobblehead comes alive on its base: the big head bobbles side to side, they unfold their arms, give a cheeky thumbs up and a little wiggle, then fold their arms again with a grin. Keep the same 3D figurine look, base and backdrop. The camera slowly circles. Playful boing sound effects, no words.' },
@@ -272,7 +269,7 @@ export const MAX_PER_MODE = 12;
 // new events start with 12 Toon Style and 12 AI Create styles ticked, one or more from every category
 export const DEFAULT_STYLES = pick(
   'pencil', 'lineart', 'cartoon', 'laugh', 'retroanime', 'pixel', 'dollbox', 'water', 'fashion', 'minime', 'bobble', 'chibiemo',
-  'stormhero', 'cyberhero', 'premiere', 'gala', 'football', 'basketball', 'spy', 'dragon', 'cyberpunk', 'future', 'elf', 'planetdxb');
+  'stormhero', 'cyberhero', 'premiere', 'gala', 'football', 'giant', 'spy', 'dragon', 'cyberpunk', 'future', 'elf', 'planetdxb');
 export const DEFAULT_EXPRESSIONS = [
   'laughing out loud, eyes squeezed shut with joy',
   'amazed, mouth wide open in a big "wow"',
