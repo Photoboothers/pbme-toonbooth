@@ -80,19 +80,23 @@ export function thumbOf(img, long = 720) { const s = long / Math.max(img.width, 
 
 // ---------- printing (Chrome started with --kiosk-printing prints straight to the default printer) ----------
 let printChain = Promise.resolve();
+// the picture goes into a hidden page (data, not a blob link, so nothing can block it), then Chrome prints that page
 export function printBlob(blob, frameEl) {
   printChain = printChain.then(() => new Promise((resolve) => {
-    const fr = frameEl, url = URL.createObjectURL(blob);
-    fr.onload = () => {
-      const img = fr.contentDocument.querySelector('img');
-      const go = () => { try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch (e) { toast('Print failed: ' + e.message, true); } setTimeout(() => { URL.revokeObjectURL(url); resolve(); }, 1500); };
-      if (img.complete) go(); else img.onload = go;
+    const rd = new FileReader();
+    rd.onload = () => {
+      const fr = frameEl, done = () => setTimeout(resolve, 1500);
+      fr.onload = () => {
+        const img = fr.contentDocument && fr.contentDocument.querySelector('img');
+        const go = () => { try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch (e) { toast('Print failed: ' + e.message, true); } done(); };
+        if (!img) return go();
+        if (img.complete && img.naturalWidth) go(); else { img.onload = go; img.onerror = () => { toast('Print failed: the picture did not load', true); done(); }; }
+      };
+      // size:auto = the printer's own paper; the picture covers the whole page
+      fr.srcdoc = `<!doctype html><html><head><style>@page{size:auto;margin:0}html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#fff}img{position:fixed;top:0;left:0;width:100%;height:100%;display:block;object-fit:cover}</style></head><body><img src="${rd.result}"></body></html>`;
     };
-    // size:auto = the printer's own paper; the image covers the whole page (DNP 4x6 paper is slightly bigger than 4x6 in)
-    fr.srcdoc = `<!doctype html><html><head><style>@page{size:auto;margin:0}html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#fff}img{position:fixed;top:0;left:0;width:100%;height:100%;display:block;object-fit:cover}</style></head><body><img src="${url}"></body></html>`;
+    rd.onerror = () => { toast('Print failed: could not read the picture', true); resolve(); };
+    rd.readAsDataURL(blob);
   }));
   return printChain;
 }
-
-// the offline helper only looks after the booth pages; remove any older copy that also covered admin
-if ('serviceWorker' in navigator && !location.pathname.startsWith('/booth')) navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => { if (!new URL(r.scope).pathname.startsWith('/booth')) r.unregister(); })).catch(() => {});
